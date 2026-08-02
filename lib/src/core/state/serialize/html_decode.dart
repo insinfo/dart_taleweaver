@@ -11,8 +11,9 @@ import '../list_defs.dart';
 import '../state.dart';
 import 'html_node.dart';
 
-const hardBreakEmbedType = 'hard-break'; // I should use the one from inline_content or define it here if needed.
-// Wait, I will import it from inline_content.dart if it's there. 
+const hardBreakEmbedType =
+    'hard-break'; // I should use the one from inline_content or define it here if needed.
+// Wait, I will import it from inline_content.dart if it's there.
 // Or I'll just use 'hard-break' inline since it's just a string const.
 
 ListDef _decimalListDef() {
@@ -40,21 +41,23 @@ void _recordOrderedLevel(
 ) {
   final def = acc.listDefs[listId];
   if (def == null) return;
-  
+
   final base = def.levels.isNotEmpty
       ? def.levels.first
       : const ListLevelConfig(style: 'decimal', start: 1, restart: 'always');
-  
+
   final levels = List<ListLevelConfig>.from(def.levels);
   while (levels.length <= depth) {
-    levels.add(ListLevelConfig(style: base.style, start: 1, restart: base.restart));
+    levels.add(
+        ListLevelConfig(style: base.style, start: 1, restart: base.restart));
   }
-  
+
   if (start != null) {
     final existing = levels[depth];
-    levels[depth] = ListLevelConfig(style: existing.style, start: start, restart: existing.restart);
+    levels[depth] = ListLevelConfig(
+        style: existing.style, start: start, restart: existing.restart);
   }
-  
+
   acc.listDefs[listId] = ListDef(levels: levels);
 }
 
@@ -84,10 +87,11 @@ void _accumulateNode(
 
   final tag = node.tagName;
   if (tag == 'BR') {
-    out.add(EmbedItem(embedType: hardBreakEmbedType, attrs: {}, properties: {}));
+    out.add(
+        EmbedItem(embedType: hardBreakEmbedType, attrs: {}, properties: {}));
     return;
   }
-  
+
   final markKey = _booleanMarkTags[tag];
   if (markKey != null) {
     final nextAttrs = Map<String, dynamic>.from(activeAttrs);
@@ -95,7 +99,7 @@ void _accumulateNode(
     _accumulateInline(node, nextAttrs, out);
     return;
   }
-  
+
   if (tag == 'A') {
     final href = node.getAttribute('href');
     final nextAttrs = Map<String, dynamic>.from(activeAttrs);
@@ -105,7 +109,7 @@ void _accumulateNode(
     _accumulateInline(node, nextAttrs, out);
     return;
   }
-  
+
   _accumulateInline(node, activeAttrs, out);
 }
 
@@ -139,7 +143,14 @@ class _DecodeAccumulator {
 }
 
 const _hyphensKeywords = {'none', 'manual', 'auto'};
-const _textAlignKeywords = {'start', 'end', 'center', 'justify', 'left', 'right'};
+const _textAlignKeywords = {
+  'start',
+  'end',
+  'center',
+  'justify',
+  'left',
+  'right'
+};
 
 String? _logicalTextAlign(String value) {
   switch (value) {
@@ -185,10 +196,8 @@ Map<String, dynamic> _resolveInheritedAttrs(
   return next ?? inherited;
 }
 
-Map<String, dynamic>? _withInheritedAttrs(
-  Map<String, dynamic> inherited,
-  [Map<String, dynamic>? own]
-) {
+Map<String, dynamic>? _withInheritedAttrs(Map<String, dynamic> inherited,
+    [Map<String, dynamic>? own]) {
   if (inherited.isEmpty) return own;
   final merged = Map<String, dynamic>.from(inherited);
   if (own != null) merged.addAll(own);
@@ -204,24 +213,26 @@ void _walkList(
 ) {
   final def = acc.listDefs[listId];
   final ordered = def != null && classifyListDef(def) == 'ordered';
-  
+
   if (ordered) {
-    _recordOrderedLevel(acc, listId, depth, _parseOrdinal(listEl.getAttribute('start')));
+    _recordOrderedLevel(
+        acc, listId, depth, _parseOrdinal(listEl.getAttribute('start')));
   }
-  
+
   for (final child in listEl.children) {
     final childTag = child.tagName;
     if (childTag == 'UL' || childTag == 'OL') {
-      _walkList(child, listId, depth + 1, acc, _resolveInheritedAttrs(child, inherited));
+      _walkList(child, listId, depth + 1, acc,
+          _resolveInheritedAttrs(child, inherited));
       continue;
     }
-    
+
     if (childTag != 'LI') continue;
-    
+
     final liInherited = _resolveInheritedAttrs(child, inherited);
     final items = <InlineItem>[];
     final nestedLists = <HtmlNode>[];
-    
+
     for (final liChild in child.childNodes) {
       if (liChild.kind == HtmlNodeKind.element) {
         final t = liChild.tagName;
@@ -232,20 +243,23 @@ void _walkList(
       }
       _accumulateNode(liChild, {}, items);
     }
-    
-    final override = ordered ? _parseOrdinal(child.getAttribute('value')) : null;
-    
+
+    final override =
+        ordered ? _parseOrdinal(child.getAttribute('value')) : null;
+
     final liAttrs = Map<String, dynamic>.from(liInherited);
     liAttrs['listId'] = listId;
     liAttrs['listLevel'] = depth;
     if (override != null) liAttrs['listCounterOverride'] = override;
-    
+
     acc.blocks.add(LeafBlockNode(
       type: 'list-item',
       attrs: liAttrs,
-      inlineContent: {'items': items.map((e) => (e as dynamic).toJson()).toList()},
+      inlineContent: {
+        'items': items.map((e) => (e as dynamic).toJson()).toList()
+      },
     ));
-    
+
     for (final nested in nestedLists) {
       _walkList(nested, listId, depth + 1, acc, liInherited);
     }
@@ -253,7 +267,19 @@ void _walkList(
 }
 
 const _blockLevelTags = {
-  'P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'IMG', 'UL', 'OL', 'TABLE', 'DIV',
+  'P',
+  'H1',
+  'H2',
+  'H3',
+  'H4',
+  'H5',
+  'H6',
+  'HR',
+  'IMG',
+  'UL',
+  'OL',
+  'TABLE',
+  'DIV',
 };
 
 List<BlockNode> _decodeFlowContent(
@@ -263,22 +289,26 @@ List<BlockNode> _decodeFlowContent(
 ) {
   final cellAcc = _DecodeAccumulator(blocks: [], listDefs: acc.listDefs);
   var pending = <InlineItem>[];
-  
+
   void flush() {
     if (pending.isEmpty) return;
     cellAcc.blocks.add(LeafBlockNode(
       type: 'paragraph',
       attrs: _withInheritedAttrs(inherited) ?? {},
-      inlineContent: {'items': pending.map((e) => (e as dynamic).toJson()).toList()},
+      inlineContent: {
+        'items': pending.map((e) => (e as dynamic).toJson()).toList()
+      },
     ));
     pending = [];
   }
-  
+
   for (final child in el.childNodes) {
-    if (child.kind == HtmlNodeKind.element && _blockLevelTags.contains(child.tagName)) {
+    if (child.kind == HtmlNodeKind.element &&
+        _blockLevelTags.contains(child.tagName)) {
       flush();
       if (child.tagName == 'DIV') {
-        cellAcc.blocks.addAll(_decodeFlowContent(child, acc, _resolveInheritedAttrs(child, inherited)));
+        cellAcc.blocks.addAll(_decodeFlowContent(
+            child, acc, _resolveInheritedAttrs(child, inherited)));
       } else {
         _decodeBlockElement(child, cellAcc, inherited);
       }
@@ -310,7 +340,9 @@ double? _parseColWidth(HtmlNode col) {
 List<double> _fillEqualShare(List<double?> widths) {
   final knownSum = widths.whereType<double>().fold(0.0, (a, b) => a + b);
   final nullCount = widths.where((w) => w == null).length;
-  final each = nullCount > 0 ? (1.0 - knownSum).clamp(0.0, double.infinity) / nullCount : 0.0;
+  final each = nullCount > 0
+      ? (1.0 - knownSum).clamp(0.0, double.infinity) / nullCount
+      : 0.0;
   return widths.map((w) => w ?? each).toList();
 }
 
@@ -321,25 +353,29 @@ ContainerBlockNode _decodeTableRow(
 ) {
   final rowInherited = _resolveInheritedAttrs(rowEl, inherited);
   final cells = <ContainerBlockNode>[];
-  
+
   for (final cellEl in rowEl.children) {
     if (cellEl.tagName != 'TD' && cellEl.tagName != 'TH') continue;
     final cellInherited = _resolveInheritedAttrs(cellEl, rowInherited);
     final attrs = <String, dynamic>{};
-    
+
     final colSpan = _parseSpan(cellEl.getAttribute('colspan'));
     final rowSpan = _parseSpan(cellEl.getAttribute('rowspan'));
     if (colSpan > 1) attrs['colSpan'] = colSpan;
     if (rowSpan > 1) attrs['rowSpan'] = rowSpan;
-    
+
     var children = _decodeFlowContent(cellEl, acc, cellInherited);
     if (children.isEmpty) {
-      children = [LeafBlockNode(type: 'paragraph', attrs: {}, inlineContent: {'items': []})];
+      children = [
+        LeafBlockNode(
+            type: 'paragraph', attrs: {}, inlineContent: {'items': []})
+      ];
     }
-    
-    cells.add(ContainerBlockNode(type: 'table-cell', attrs: attrs, children: children));
+
+    cells.add(ContainerBlockNode(
+        type: 'table-cell', attrs: attrs, children: children));
   }
-  
+
   return ContainerBlockNode(type: 'table-row', attrs: {}, children: cells);
 }
 
@@ -352,7 +388,7 @@ void _decodeTable(
   int headerRowCount = 0;
   bool sawBodyRows = false;
   List<double>? columnWidths;
-  
+
   for (final child in el.children) {
     switch (child.tagName) {
       case 'COLGROUP':
@@ -367,7 +403,8 @@ void _decodeTable(
         if (anyUsable) columnWidths = _fillEqualShare(widths);
         break;
       case 'THEAD':
-        final theadRows = child.children.where((c) => c.tagName == 'TR').toList();
+        final theadRows =
+            child.children.where((c) => c.tagName == 'TR').toList();
         if (!sawBodyRows) headerRowCount = theadRows.length;
         rowEls.addAll(theadRows);
         break;
@@ -382,13 +419,15 @@ void _decodeTable(
         break;
     }
   }
-  
-  final rows = rowEls.map((rowEl) => _decodeTableRow(rowEl, acc, inherited)).toList();
+
+  final rows =
+      rowEls.map((rowEl) => _decodeTableRow(rowEl, acc, inherited)).toList();
   final attrs = <String, dynamic>{};
   if (columnWidths != null) attrs['columnWidths'] = columnWidths;
   if (headerRowCount > 0) attrs['headerRowCount'] = headerRowCount;
-  
-  acc.blocks.add(ContainerBlockNode(type: 'table', attrs: attrs, children: rows));
+
+  acc.blocks
+      .add(ContainerBlockNode(type: 'table', attrs: attrs, children: rows));
 }
 
 void _decodeBlockElement(
@@ -398,7 +437,7 @@ void _decodeBlockElement(
 ) {
   final tag = el.tagName;
   final inherited = _resolveInheritedAttrs(el, parentInherited);
-  
+
   switch (tag) {
     case 'P':
       acc.blocks.add(LeafBlockNode(
@@ -415,32 +454,40 @@ void _decodeBlockElement(
     case 'H6':
       acc.blocks.add(LeafBlockNode(
         type: 'heading',
-        attrs: _withInheritedAttrs(inherited, {'level': _headingLevelFromTag(tag)}) ?? {},
+        attrs: _withInheritedAttrs(
+                inherited, {'level': _headingLevelFromTag(tag)}) ??
+            {},
         inlineContent: _inlineContentOf(el),
       ));
       return;
     case 'HR':
-      acc.blocks.add(LeafBlockNode(type: 'horizontal-line', attrs: {}, inlineContent: {'items': []}));
+      acc.blocks.add(LeafBlockNode(
+          type: 'horizontal-line', attrs: {}, inlineContent: {'items': []}));
       return;
     case 'IMG':
       final rawSrc = el.getAttribute('src');
       final src = rawSrc != null && isExportSafeLinkUrl(rawSrc) ? rawSrc : '';
       final attrs = <String, dynamic>{'src': src};
-      
+
       final width = el.getAttribute('width');
-      if (width != null && width.trim().isNotEmpty && double.tryParse(width) != null) {
+      if (width != null &&
+          width.trim().isNotEmpty &&
+          double.tryParse(width) != null) {
         attrs['width'] = double.parse(width);
       }
-      
+
       final height = el.getAttribute('height');
-      if (height != null && height.trim().isNotEmpty && double.tryParse(height) != null) {
+      if (height != null &&
+          height.trim().isNotEmpty &&
+          double.tryParse(height) != null) {
         attrs['height'] = double.parse(height);
       }
-      
+
       final alt = el.getAttribute('alt');
       if (alt != null) attrs['alt'] = alt;
-      
-      acc.blocks.add(LeafBlockNode(type: 'image', attrs: attrs, inlineContent: {'items': []}));
+
+      acc.blocks.add(LeafBlockNode(
+          type: 'image', attrs: attrs, inlineContent: {'items': []}));
       return;
     case 'UL':
     case 'OL':
@@ -467,16 +514,18 @@ State decodeHtml(
 ) {
   final body = parseHtml(html);
   final acc = _DecodeAccumulator(blocks: [], listDefs: {});
-  
+
   final rootInherited = _resolveInheritedAttrs(body, {});
   for (final child in body.children) {
     _decodeBlockElement(child, acc, rootInherited);
   }
-  
+
   if (acc.blocks.isEmpty) {
-    acc.blocks.add(LeafBlockNode(type: 'paragraph', attrs: {}, inlineContent: {'items': []}));
+    acc.blocks.add(LeafBlockNode(
+        type: 'paragraph', attrs: {}, inlineContent: {'items': []}));
   }
-  
-  final root = ContainerBlockNode(type: 'document', attrs: {}, children: acc.blocks);
+
+  final root =
+      ContainerBlockNode(type: 'document', attrs: {}, children: acc.blocks);
   return buildDocumentFromTree(root, acc.listDefs, allocator);
 }

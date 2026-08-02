@@ -29,14 +29,14 @@ class _BinaryDocumentSerializer implements DocumentSerializer<Uint8List> {
     try {
       final jsonStr = utf8.decoder.convert(source);
       final data = jsonDecode(jsonStr) as Map<String, dynamic>;
-      
+
       final doc = TwDoc.fromJson(data);
-      
+
       final rootIdVal = doc.meta['rootId'];
       if (rootIdVal == null || rootIdVal is! String) {
         throw MalformedDocumentError(binaryFormat);
       }
-      
+
       return createState(rootId: BlockId(rootIdVal), doc: doc);
     } catch (e) {
       if (e is MalformedDocumentError) rethrow;

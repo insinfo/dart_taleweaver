@@ -23,7 +23,7 @@ class FootnoteBodyComponent implements ContainerComponentDefinition {
     List<RenderNode> childRenderNodes,
   ) {
     final number = context.footnoteNumber(view.id);
-    
+
     final style = Style(
       display: Display.block,
       whiteSpace: WhiteSpace.breakSpaces,
@@ -32,7 +32,7 @@ class FootnoteBodyComponent implements ContainerComponentDefinition {
       widows: 1,
       markerText: number,
     );
-    
+
     return createElementBox(
       view.id.value,
       style,

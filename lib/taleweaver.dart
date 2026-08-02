@@ -60,6 +60,13 @@ export 'src/core/layout/text_shaper.dart';
 export 'src/core/layout/text_spacing.dart';
 export 'src/core/layout/text_tokenize.dart';
 export 'src/core/layout/text_transform.dart';
+export 'src/core/layout/uax14/index.dart';
+
+// ---------------------------------------------------------------------------
+// Geometry-free editor state
+// ---------------------------------------------------------------------------
+export 'src/core/editor/editor_action.dart';
+export 'src/core/editor/editor_state.dart';
 
 // ---------------------------------------------------------------------------
 // Yjs-compatible shared types (incremental port)

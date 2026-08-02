@@ -36,18 +36,23 @@ class BuildStateFromBlocksArgs {
 /// underlying `TwDoc`, id-PRESERVING.
 State buildStateFromBlocks(BuildStateFromBlocksArgs args) {
   final doc = TwDoc.create(rootId: args.rootId);
-  
+
   doc.transact(() {
     for (final block in args.blocks) {
       doc.setBlockMap(block.id.value, {
         BlockFields.type: block.type,
         BlockFields.attrs: Map<String, dynamic>.of(block.attrs),
         if (block.parentId != null) BlockFields.parentId: block.parentId!.value,
-        if (block.prevSiblingId != null) BlockFields.prevSiblingId: block.prevSiblingId!.value,
-        if (block.nextSiblingId != null) BlockFields.nextSiblingId: block.nextSiblingId!.value,
-        if (block.firstChildId != null) BlockFields.firstChildId: block.firstChildId!.value,
-        if (block.lastChildId != null) BlockFields.lastChildId: block.lastChildId!.value,
-        if (block.inlineContent != null) BlockFields.inlineContent: block.inlineContent!,
+        if (block.prevSiblingId != null)
+          BlockFields.prevSiblingId: block.prevSiblingId!.value,
+        if (block.nextSiblingId != null)
+          BlockFields.nextSiblingId: block.nextSiblingId!.value,
+        if (block.firstChildId != null)
+          BlockFields.firstChildId: block.firstChildId!.value,
+        if (block.lastChildId != null)
+          BlockFields.lastChildId: block.lastChildId!.value,
+        if (block.inlineContent != null)
+          BlockFields.inlineContent: block.inlineContent!,
       });
     }
 
@@ -56,12 +61,18 @@ State buildStateFromBlocks(BuildStateFromBlocksArgs args) {
         doc.setEmbedContentMap(block.id.value, {
           BlockFields.type: block.type,
           BlockFields.attrs: Map<String, dynamic>.of(block.attrs),
-          if (block.parentId != null) BlockFields.parentId: block.parentId!.value,
-          if (block.prevSiblingId != null) BlockFields.prevSiblingId: block.prevSiblingId!.value,
-          if (block.nextSiblingId != null) BlockFields.nextSiblingId: block.nextSiblingId!.value,
-          if (block.firstChildId != null) BlockFields.firstChildId: block.firstChildId!.value,
-          if (block.lastChildId != null) BlockFields.lastChildId: block.lastChildId!.value,
-          if (block.inlineContent != null) BlockFields.inlineContent: block.inlineContent!,
+          if (block.parentId != null)
+            BlockFields.parentId: block.parentId!.value,
+          if (block.prevSiblingId != null)
+            BlockFields.prevSiblingId: block.prevSiblingId!.value,
+          if (block.nextSiblingId != null)
+            BlockFields.nextSiblingId: block.nextSiblingId!.value,
+          if (block.firstChildId != null)
+            BlockFields.firstChildId: block.firstChildId!.value,
+          if (block.lastChildId != null)
+            BlockFields.lastChildId: block.lastChildId!.value,
+          if (block.inlineContent != null)
+            BlockFields.inlineContent: block.inlineContent!,
         });
       }
     }
@@ -71,12 +82,18 @@ State buildStateFromBlocks(BuildStateFromBlocksArgs args) {
         doc.setTemplateContentMap(block.id.value, {
           BlockFields.type: block.type,
           BlockFields.attrs: Map<String, dynamic>.of(block.attrs),
-          if (block.parentId != null) BlockFields.parentId: block.parentId!.value,
-          if (block.prevSiblingId != null) BlockFields.prevSiblingId: block.prevSiblingId!.value,
-          if (block.nextSiblingId != null) BlockFields.nextSiblingId: block.nextSiblingId!.value,
-          if (block.firstChildId != null) BlockFields.firstChildId: block.firstChildId!.value,
-          if (block.lastChildId != null) BlockFields.lastChildId: block.lastChildId!.value,
-          if (block.inlineContent != null) BlockFields.inlineContent: block.inlineContent!,
+          if (block.parentId != null)
+            BlockFields.parentId: block.parentId!.value,
+          if (block.prevSiblingId != null)
+            BlockFields.prevSiblingId: block.prevSiblingId!.value,
+          if (block.nextSiblingId != null)
+            BlockFields.nextSiblingId: block.nextSiblingId!.value,
+          if (block.firstChildId != null)
+            BlockFields.firstChildId: block.firstChildId!.value,
+          if (block.lastChildId != null)
+            BlockFields.lastChildId: block.lastChildId!.value,
+          if (block.inlineContent != null)
+            BlockFields.inlineContent: block.inlineContent!,
         });
       }
     }
@@ -97,7 +114,7 @@ State buildStateFromBlocks(BuildStateFromBlocksArgs args) {
 
     if (args.comments != null) {
       for (final record in args.comments!) {
-        doc.comments[record.id] = {
+        doc.comments[record.id.value] = {
           'author': record.author,
           'body': record.body,
           'createdAt': record.createdAt,
@@ -126,6 +143,6 @@ State buildStateFromBlocks(BuildStateFromBlocksArgs args) {
       }
     }
   });
-  
+
   return createState(rootId: args.rootId, doc: doc);
 }

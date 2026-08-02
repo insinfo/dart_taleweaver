@@ -2,6 +2,7 @@ library;
 
 import '../styles/computed_style.dart';
 import '../styles/writing_mode.dart';
+import 'uax14/break_opportunities.dart';
 
 typedef GlyphId = int;
 
@@ -69,16 +70,8 @@ abstract interface class TextShaper {
 }
 
 List<BreakOpportunity> toBreakOpportunities(String text) {
-  final result = <BreakOpportunity>[];
-  var offset = 0;
-  for (final rune in text.runes) {
-    final length = String.fromCharCode(rune).length;
-    offset += length;
-    if (rune == 0x0a || rune == 0x0d || rune == 0x2028 || rune == 0x2029) {
-      result.add(BreakOpportunity(offset, 'hard'));
-    } else if (rune == 0x20 || rune == 0x09 || rune == 0x2d) {
-      result.add(BreakOpportunity(offset, 'soft'));
-    }
-  }
-  return result;
+  return lineBreakOpportunities(text, cjBreakable: true)
+      .map((point) =>
+          BreakOpportunity(point.index, point.mandatory ? 'hard' : 'soft'))
+      .toList(growable: false);
 }

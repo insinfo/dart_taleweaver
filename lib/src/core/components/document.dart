@@ -26,7 +26,7 @@ class DocumentComponent implements ContainerComponentDefinition {
   ) {
     final writingMode = writingModeFromAttrs(view.attrs['writingMode']);
     final language = langFromAttrs(view.attrs['lang']);
-    
+
     final style = Style(
       display: Display.block,
       whiteSpace: WhiteSpace.breakSpaces,
@@ -34,7 +34,7 @@ class DocumentComponent implements ContainerComponentDefinition {
       writingMode: writingMode,
       language: language,
     );
-    
+
     return createElementBox(
       view.id.value,
       style,

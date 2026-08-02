@@ -40,26 +40,27 @@ class ImageComponent implements LeafComponentDefinition {
   ) {
     final src = _strAttr(view.attrs['src'], '');
     final alt = _strAttr(view.attrs['alt'], '');
-    
+
     final widthAttr = view.attrs['width'];
     final heightAttr = view.attrs['height'];
-    
+
     final inlineSize = widthAttr != null ? _numAttr(widthAttr, 0.0) : 'auto';
     final blockSize = heightAttr != null ? _numAttr(heightAttr, 0.0) : 'auto';
-    
+
     final width = _numAttr(widthAttr, 0.0);
     final height = _numAttr(heightAttr, 0.0);
-    
-    final direction = view.computedStyle.direction; // never null in Dart ComputedStyle
+
+    final direction =
+        view.computedStyle.direction; // never null in Dart ComputedStyle
     final float = imageWrapFloat(view.attrs['wrap'], direction);
-    
+
     final style = Style(
       display: Display.block,
       inlineSize: inlineSize,
       blockSize: blockSize,
       float: float,
     );
-    
+
     return createElementBox(
       view.id.value,
       style,

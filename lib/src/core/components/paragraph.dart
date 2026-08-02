@@ -45,7 +45,8 @@ class ParagraphComponent implements LeafComponentDefinition {
 
   @override
   RenderNode render(
-    covariant LeafBlockView view, // actually LeafBlockView, we use covariant if needed, but it's LeafBlockView in interface
+    covariant LeafBlockView
+        view, // actually LeafBlockView, we use covariant if needed, but it's LeafBlockView in interface
     RenderContext context,
     List<RenderNode> inlineRenderNodes,
   ) {
@@ -54,24 +55,31 @@ class ParagraphComponent implements LeafComponentDefinition {
     final language = langFromAttrs(view.attrs['lang']);
     final textAlign = textAlignFromAttrs(view.attrs['textAlign']);
     final lineHeight = lineHeightFromAttrs(view.attrs['lineHeight']);
-    final marginInlineStart = marginInlineStartFromAttrs(view.attrs['marginInlineStart']);
-    final marginBlockStart = marginBlockStartFromAttrs(view.attrs['marginBlockStart']);
-    final marginBlockEnd = marginBlockEndFromAttrs(view.attrs['marginBlockEnd']);
+    final marginInlineStart =
+        marginInlineStartFromAttrs(view.attrs['marginInlineStart']);
+    final marginBlockStart =
+        marginBlockStartFromAttrs(view.attrs['marginBlockStart']);
+    final marginBlockEnd =
+        marginBlockEndFromAttrs(view.attrs['marginBlockEnd']);
     final tabStops = tabStopsFromAttrs(view.attrs['tabStops']);
 
     final style = Style(
       display: Display.block,
       marginBlockEnd: marginBlockEnd != null
-          ? Length.px(marginBlockEnd)
-          : const Length.em(0.5),
+          ? LengthOrAuto.length(Length.px(marginBlockEnd))
+          : LengthOrAuto.length(const Length.em(0.5)),
       whiteSpace: whiteSpace,
       writingMode: writingMode,
       language: language,
       textAlign: textAlign,
       lineHeight: lineHeight,
       tabStops: tabStops,
-      marginInlineStart: marginInlineStart != null ? Length.px(marginInlineStart) : null,
-      marginBlockStart: marginBlockStart != null ? Length.px(marginBlockStart) : null,
+      marginInlineStart: marginInlineStart != null
+          ? LengthOrAuto.length(Length.px(marginInlineStart))
+          : null,
+      marginBlockStart: marginBlockStart != null
+          ? LengthOrAuto.length(Length.px(marginBlockStart))
+          : null,
     );
 
     return createElementBox(view.id.value, style, inlineRenderNodes);

@@ -13,7 +13,7 @@ enum HtmlNodeKind {
 /// A minimal, DOM-free view of a parsed HTML node.
 abstract interface class HtmlNode {
   HtmlNodeKind get kind;
-  
+
   /// UPPERCASE tag name for elements; empty string for non-elements.
   String get tagName;
 

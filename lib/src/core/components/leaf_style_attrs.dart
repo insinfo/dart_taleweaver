@@ -9,7 +9,9 @@ import '../styles/tab_stops.dart';
 import '../styles/writing_mode.dart';
 
 bool isWritingMode(dynamic value) {
-  return value == 'horizontal-tb' || value == 'vertical-rl' || value == 'vertical-lr';
+  return value == 'horizontal-tb' ||
+      value == 'vertical-rl' ||
+      value == 'vertical-lr';
 }
 
 WritingMode? writingModeFromAttrs(dynamic value) {

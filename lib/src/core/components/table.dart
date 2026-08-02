@@ -39,12 +39,16 @@ class TableComponent implements ContainerComponentDefinition {
   ) {
     final cwRaw = view.attrs['columnWidths'];
     final hrcRaw = view.attrs['headerRowCount'];
-    
-    final cw = _isNumberArray(cwRaw) ? (cwRaw as List).map((e) => (e as num).toDouble()).toList(growable: false) : null;
+
+    final cw = _isNumberArray(cwRaw)
+        ? (cwRaw as List)
+            .map((e) => (e as num).toDouble())
+            .toList(growable: false)
+        : null;
     final hrc = _isNonNegativeInteger(hrcRaw) ? hrcRaw as int : null;
-    
+
     final hasMetadata = cw != null || hrc != null;
-    
+
     return createElementBox(
       view.id.value,
       const Style(display: Display.table),

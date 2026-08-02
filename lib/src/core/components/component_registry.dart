@@ -23,7 +23,7 @@ abstract class ComponentRegistry implements BlockKindResolver {
   void register(ComponentDefinition def);
   ComponentDefinition? get(String type);
   bool has(String type);
-  
+
   @override
   Kind? getBlockKind(String type);
 }

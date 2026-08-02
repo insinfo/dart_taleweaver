@@ -27,11 +27,11 @@ class TableCellComponent implements ContainerComponentDefinition {
   ) {
     final rowSpan = spanValue(view.attrs['rowSpan']);
     final colSpan = spanValue(view.attrs['colSpan']);
-    
+
     final metadata = (rowSpan != null || colSpan != null)
         ? LayoutBoxMetadata(rowSpan: rowSpan, colSpan: colSpan)
         : null;
-        
+
     return createElementBox(
       view.id.value,
       const Style(

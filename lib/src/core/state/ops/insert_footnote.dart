@@ -54,7 +54,7 @@ InsertFootnoteResult insertFootnote(
   applyOperation(state, (doc) {
     _insertFootnoteBodyInTx(doc, bodyRootId, firstParagraphId);
     _insertAnchorInTx(doc, anchorPlan);
-    
+
     dirtyIds.add(bodyRootId.value);
     dirtyIds.add(firstParagraphId.value);
     dirtyIds.add(anchorPlan.blockId.value);
@@ -76,10 +76,14 @@ _AnchorInsertPlan _planAnchorInsert(
   if (resolved == null) {
     throw StateError('insertFootnote: block "${position.blockId}" not found');
   }
-  
+
   final block = resolved.block;
-  final kind = resolved.kind;
-  
+  final kind = switch (resolved.kind) {
+    ResolvedBlockKind.main => 'main',
+    ResolvedBlockKind.embed => 'embed',
+    ResolvedBlockKind.template => 'template',
+  };
+
   if (block.inlineContent == null) {
     throw StateError(
       'insertFootnote: block "${position.blockId}" is not a leaf',
@@ -99,10 +103,11 @@ _AnchorInsertPlan _planAnchorInsert(
     properties: {'contentBlockId': bodyRootId.value},
   );
 
-  final split = splitInlineContentAtOffset(block.inlineContent!, position.offset);
+  final split =
+      splitInlineContentAtOffset(block.inlineContent!, position.offset);
   final left = split.$1;
   final right = split.$2;
-  
+
   final items = mergeAdjacentTextItems([...left, anchor, ...right]);
 
   return _AnchorInsertPlan(blockId: position.blockId, kind: kind, items: items);
@@ -150,7 +155,8 @@ void _insertAnchorInTx(TwDoc doc, _AnchorInsertPlan plan) {
 
   final blockObj = tree[plan.blockId.value];
   if (blockObj == null) {
-    throw StateError('insertFootnote: Block ${plan.blockId} not found in tree ${plan.kind}');
+    throw StateError(
+        'insertFootnote: Block ${plan.blockId} not found in tree ${plan.kind}');
   }
 
   blockObj['inlineContent'] = {

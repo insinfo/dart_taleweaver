@@ -25,7 +25,7 @@ abstract class ContainerComponentDefinition implements ComponentDefinition {
 abstract class LeafComponentDefinition implements ComponentDefinition {
   @override
   String get kind => 'leaf';
-  
+
   String get leafShape; // "inline-bearing" | "atomic"
   String? get splitFollowOnType;
 

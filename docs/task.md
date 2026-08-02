@@ -123,5 +123,13 @@
 - `[ ]` UAX #9 bidi completo e tabelas Unicode
 - `[ ]` Intrinsic sizes, hyphenation e shaping Canvas
 
+## Fase 8 — Editor state machine
+- `[x]` EditorState, EditorAction e reducer geometry-free básicos
+- `[x]` Inserção de texto, seleção, movimento de palavra e expansão
+- `[x]` Delete range/backward/forward básico
+- `[x]` Integração inicial com History undo/redo
+- `[ ]` Portar todas as ações e coalescing da referência
+- `[ ]` Paste, formatting, tabelas, imagens, comentários e sugestões
+
 ## Fase 4 — Componentes
 - `[ ]` `components` e `registry`

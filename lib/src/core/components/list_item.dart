@@ -43,29 +43,32 @@ class ListItemComponent implements LeafComponentDefinition {
     final level = (levelRaw is num && levelRaw.isFinite && levelRaw > 0)
         ? levelRaw.floor()
         : 0;
-    
+
     final listIdRaw = view.attrs['listId'];
     final listId = listIdRaw is String ? listIdRaw : '';
-    
+
     final counter = context.counterValue(listId, view.id);
     String? markerText;
     bool? ordered;
-    
+
     if (counter != null) {
       final isBullet = _bulletGlyphs.contains(counter.formatted);
       markerText = isBullet ? counter.formatted : '${counter.formatted}.';
       ordered = !isBullet;
     }
-    
+
     final writingMode = writingModeFromAttrs(view.attrs['writingMode']);
     final language = langFromAttrs(view.attrs['lang']);
     final textAlign = textAlignFromAttrs(view.attrs['textAlign']);
     final lineHeight = lineHeightFromAttrs(view.attrs['lineHeight']);
-    final marginInlineStart = marginInlineStartFromAttrs(view.attrs['marginInlineStart']);
-    final marginBlockStart = marginBlockStartFromAttrs(view.attrs['marginBlockStart']);
-    final marginBlockEnd = marginBlockEndFromAttrs(view.attrs['marginBlockEnd']);
+    final marginInlineStart =
+        marginInlineStartFromAttrs(view.attrs['marginInlineStart']);
+    final marginBlockStart =
+        marginBlockStartFromAttrs(view.attrs['marginBlockStart']);
+    final marginBlockEnd =
+        marginBlockEndFromAttrs(view.attrs['marginBlockEnd']);
     final tabStops = tabStopsFromAttrs(view.attrs['tabStops']);
-    
+
     final style = Style(
       display: Display.listItem,
       paddingInlineStart: Length.px(baseListIndent + level * levelStep),
@@ -75,17 +78,25 @@ class ListItemComponent implements LeafComponentDefinition {
       textAlign: textAlign,
       lineHeight: lineHeight,
       tabStops: tabStops,
-      marginInlineStart: marginInlineStart != null ? Length.px(marginInlineStart) : null,
-      marginBlockStart: marginBlockStart != null ? Length.px(marginBlockStart) : null,
-      marginBlockEnd: marginBlockEnd != null ? Length.px(marginBlockEnd) : null,
+      marginInlineStart: marginInlineStart != null
+          ? LengthOrAuto.length(Length.px(marginInlineStart))
+          : null,
+      marginBlockStart: marginBlockStart != null
+          ? LengthOrAuto.length(Length.px(marginBlockStart))
+          : null,
+      marginBlockEnd: marginBlockEnd != null
+          ? LengthOrAuto.length(Length.px(marginBlockEnd))
+          : null,
     );
-    
+
     return createElementBox(
-      view.id.value, 
-      style, 
+      view.id.value,
+      style,
       inlineRenderNodes,
-      ordered != null 
-          ? LayoutBoxMetadata(list: ListMetadata(level: level, listId: listId, ordered: ordered))
+      ordered != null
+          ? LayoutBoxMetadata(
+              list:
+                  ListMetadata(level: level, listId: listId, ordered: ordered))
           : null,
     );
   }

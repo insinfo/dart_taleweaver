@@ -184,11 +184,13 @@ String _encodeListRun(List<_RunItem> items, String tag) {
 
   String emitLiTag(_RunItem item, bool ordered, List<int?> expectedAtLevel) {
     if (!ordered || item.value == null) return '<li>';
-    final expected = expectedAtLevel.length > item.level ? expectedAtLevel[item.level] : null;
+    final expected = expectedAtLevel.length > item.level
+        ? expectedAtLevel[item.level]
+        : null;
     final tag = (expected != null && item.value != expected)
         ? '<li value="${item.value}">'
         : '<li>';
-    
+
     while (expectedAtLevel.length <= item.level) {
       expectedAtLevel.add(null);
     }
@@ -214,12 +216,12 @@ String _encodeListRun(List<_RunItem> items, String tag) {
     } else {
       closeLiIfOpen();
     }
-    
+
     out += emitLiTag(item, ordered, expectedAtLevel);
     out += item.inner;
     liOpenAtLevel = item.level;
   }
-  
+
   closeLiIfOpen();
   while (openLevels > 0) {
     closeList();
@@ -285,7 +287,8 @@ String _encodeCell(
   var attrsStr = '';
   if (rowSpan != null && rowSpan > 1) attrsStr += ' rowspan="$rowSpan"';
   if (colSpan != null && colSpan > 1) attrsStr += ' colspan="$colSpan"';
-  final inner = _encodeBlockSequence(state, cell.firstChildId, listDefs, counters, warnDrop);
+  final inner = _encodeBlockSequence(
+      state, cell.firstChildId, listDefs, counters, warnDrop);
   return '<td$attrsStr>$inner</td>';
 }
 
@@ -328,7 +331,8 @@ String _encodeBlockSequence(
         j++;
       }
       final def = listDefs[listId];
-      final tag = (def != null && classifyListDef(def) == 'unordered') ? 'ul' : 'ol';
+      final tag =
+          (def != null && classifyListDef(def) == 'unordered') ? 'ul' : 'ol';
       out += _encodeListRun(runItems, tag);
       i = j;
     } else if (block.type == 'table') {
@@ -350,6 +354,7 @@ String encodeHtml(State state) {
   final counters = docHasLists(state)
       ? computeCounters(collectListEvents(state), listDefs)
       : <BlockId, CounterValue>{};
-  final body = _encodeBlockSequence(state, root.firstChildId, listDefs, counters, _makeDropWarner());
+  final body = _encodeBlockSequence(
+      state, root.firstChildId, listDefs, counters, _makeDropWarner());
   return '<body>$body</body>';
 }

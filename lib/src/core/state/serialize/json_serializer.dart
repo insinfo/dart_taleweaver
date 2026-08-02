@@ -70,7 +70,8 @@ Map<String, dynamic> _encodeDocument(
   State state,
   BlockKindResolver resolver,
 ) {
-  final root = _encodeNode(state, state.rootId, (s, id) => getBlock(s, id), resolver);
+  final root =
+      _encodeNode(state, state.rootId, (s, id) => getBlock(s, id), resolver);
 
   final embedRoots = _encodeForestRoots(
     state,
@@ -191,12 +192,15 @@ List<Map<String, dynamic>> _encodeInlineContent(InlineContent? content) {
 Map<String, dynamic> _encodeInlineItem(InlineItem item) {
   if (item is TextItem) {
     final out = <String, dynamic>{'text': item.text};
-    if (item.attrs.isNotEmpty) out['attrs'] = Map<String, dynamic>.of(item.attrs);
+    if (item.attrs.isNotEmpty)
+      out['attrs'] = Map<String, dynamic>.of(item.attrs);
     return out;
   } else if (item is EmbedItem) {
     final out = <String, dynamic>{'embed': item.embedType};
-    if (item.attrs.isNotEmpty) out['attrs'] = Map<String, dynamic>.of(item.attrs);
-    if (item.properties.isNotEmpty) out['props'] = Map<String, dynamic>.of(item.properties);
+    if (item.attrs.isNotEmpty)
+      out['attrs'] = Map<String, dynamic>.of(item.attrs);
+    if (item.properties.isNotEmpty)
+      out['props'] = Map<String, dynamic>.of(item.properties);
     return out;
   }
   throw StateError('Unknown InlineItem type');
@@ -210,11 +214,13 @@ Map<String, dynamic>? _encodeListDefs(State state) {
   for (final listId in sortedKeys) {
     final def = defs[listId]!;
     out[listId] = {
-      'levels': def.levels.map((l) => {
-            'style': l.style,
-            'start': l.start,
-            'restart': l.restart,
-          }).toList()
+      'levels': def.levels
+          .map((l) => {
+                'style': l.style,
+                'start': l.start,
+                'restart': l.restart,
+              })
+          .toList()
     };
   }
   return out;
@@ -224,18 +230,21 @@ Map<String, dynamic>? _encodeComments(State state) {
   final comments = getComments(state);
   if (comments.isEmpty) return null;
   final out = <String, dynamic>{};
-  final sorted = List<CommentRecord>.from(comments)..sort((a, b) => a.id.toString().compareTo(b.id.toString()));
+  final sorted = List<CommentRecord>.from(comments)
+    ..sort((a, b) => a.id.toString().compareTo(b.id.toString()));
   for (final c in sorted) {
-    out[c.id] = {
+    out[c.id.value] = {
       'author': c.author,
       'body': c.body,
       'createdAt': c.createdAt,
-      'replies': c.replies.map((r) => {
-            'id': r.id,
-            'author': r.author,
-            'body': r.body,
-            'createdAt': r.createdAt,
-          }).toList(),
+      'replies': c.replies
+          .map((r) => {
+                'id': r.id,
+                'author': r.author,
+                'body': r.body,
+                'createdAt': r.createdAt,
+              })
+          .toList(),
       'resolved': c.resolved,
     };
   }
@@ -246,14 +255,16 @@ Map<String, dynamic>? _encodeSuggestions(State state) {
   final suggestions = getSuggestions(state);
   if (suggestions.isEmpty) return null;
   final out = <String, dynamic>{};
-  final sorted = List<SuggestionRecord>.from(suggestions)..sort((a, b) => a.id.value.compareTo(b.id.value));
+  final sorted = List<SuggestionRecord>.from(suggestions)
+    ..sort((a, b) => a.id.value.compareTo(b.id.value));
   for (final s in sorted) {
     final bare = <String, dynamic>{
       'kind': s.kind,
       'author': s.author,
       'createdAt': s.createdAt,
     };
-    if (s.proposedAttrs != null) bare['proposedAttrs'] = Map<String, dynamic>.of(s.proposedAttrs!);
+    if (s.proposedAttrs != null)
+      bare['proposedAttrs'] = Map<String, dynamic>.of(s.proposedAttrs!);
     out[s.id.value] = bare;
   }
   return out;
@@ -262,7 +273,8 @@ Map<String, dynamic>? _encodeSuggestions(State state) {
 Kind _resolveKind(BlockKindResolver resolver, String type) {
   final kind = resolver.getBlockKind(type);
   if (kind == null) {
-    throw StateError('json-serializer: block type "$type" is not registered (no Kind)');
+    throw StateError(
+        'json-serializer: block type "$type" is not registered (no Kind)');
   }
   return kind;
 }
@@ -291,7 +303,8 @@ State _decodeDocument(
   if (!_isRecord(map['root'])) throw MalformedDocumentError(jsonFormat);
 
   final blocks = <Block>[];
-  final rootId = _flattenNode(map['root'], null, blocks, allocator, resolver).id;
+  final rootId =
+      _flattenNode(map['root'], null, blocks, allocator, resolver).id;
 
   final embedContents = <Block>[];
   for (final node in _toNodeArray(map['embedContents'])) {
@@ -333,7 +346,8 @@ _FlattenedRef _flattenNode(
   if (type is! String) throw MalformedDocumentError(jsonFormat);
   if (_tableTypes.contains(type)) throw MalformedDocumentError(jsonFormat);
 
-  final id = map['id'] is String ? BlockId(map['id'] as String) : allocator.allocate();
+  final id =
+      map['id'] is String ? BlockId(map['id'] as String) : allocator.allocate();
   final attrs = _decodeAttrs(map['attrs']);
   final kind = _resolveKind(resolver, type);
   final inlineContent = _decodeInlineContent(kind, map['content']);
@@ -359,13 +373,13 @@ _FlattenedRef _flattenNode(
     for (final child in _toNodeArray(map['children'])) {
       childRefs.add(_flattenNode(child, id, out, allocator, resolver));
     }
-    
+
     for (var i = 0; i < childRefs.length; i++) {
       final ref = childRefs[i];
       final slot = out[ref.index];
       final prev = i > 0 ? childRefs[i - 1] : null;
       final next = i < childRefs.length - 1 ? childRefs[i + 1] : null;
-      
+
       out[ref.index] = Block(
         id: slot.id,
         type: slot.type,
@@ -378,7 +392,7 @@ _FlattenedRef _flattenNode(
         inlineContent: slot.inlineContent,
       );
     }
-    
+
     if (childRefs.isNotEmpty) {
       firstChildId = childRefs.first.id;
       lastChildId = childRefs.last.id;
@@ -415,7 +429,7 @@ InlineContent? _decodeInlineContent(Kind kind, dynamic rawContent) {
 InlineItem _decodeInlineItem(dynamic raw) {
   if (!_isRecord(raw)) throw MalformedDocumentError(jsonFormat);
   final map = raw as Map<String, dynamic>;
-  
+
   if (map['text'] is String) {
     return TextItem(
       text: map['text'] as String,
@@ -467,12 +481,15 @@ ListLevelConfig _decodeListLevel(dynamic raw) {
   if (!_isRecord(raw)) throw MalformedDocumentError(jsonFormat);
   final map = raw as Map<String, dynamic>;
   final style = map['style'];
-  if (style is! String) throw MalformedDocumentError(jsonFormat); // Simple check, real impl could validate format-counter
+  if (style is! String)
+    throw MalformedDocumentError(
+        jsonFormat); // Simple check, real impl could validate format-counter
   final start = map['start'];
   if (start is! num) throw MalformedDocumentError(jsonFormat);
   final restart = map['restart'];
-  if (restart is! String || !_counterRestarts.contains(restart)) throw MalformedDocumentError(jsonFormat);
-  
+  if (restart is! String || !_counterRestarts.contains(restart))
+    throw MalformedDocumentError(jsonFormat);
+
   return ListLevelConfig(
     style: style,
     start: start.toInt(),
@@ -494,10 +511,11 @@ List<CommentRecord>? _decodeComments(dynamic raw) {
     if (recMap['createdAt'] is! num) throw MalformedDocumentError(jsonFormat);
     if (recMap['resolved'] is! bool) throw MalformedDocumentError(jsonFormat);
     if (recMap['replies'] is! List) throw MalformedDocumentError(jsonFormat);
-    
-    final replies = (recMap['replies'] as List).map(_decodeCommentReply).toList();
+
+    final replies =
+        (recMap['replies'] as List).map(_decodeCommentReply).toList();
     out.add(CommentRecord(
-      id: entry.key,
+      id: CommentId(entry.key),
       author: recMap['author'] as String,
       body: recMap['body'] as String,
       createdAt: (recMap['createdAt'] as num).toInt(),
@@ -533,16 +551,19 @@ List<SuggestionRecord>? _decodeSuggestions(dynamic raw) {
     if (!_isRecord(rec)) throw MalformedDocumentError(jsonFormat);
     final recMap = rec as Map<String, dynamic>;
     final kind = recMap['kind'];
-    if (kind is! String || !_suggestionKinds.contains(kind)) throw MalformedDocumentError(jsonFormat);
+    if (kind is! String || !_suggestionKinds.contains(kind))
+      throw MalformedDocumentError(jsonFormat);
     if (recMap['author'] is! String) throw MalformedDocumentError(jsonFormat);
     if (recMap['createdAt'] is! num) throw MalformedDocumentError(jsonFormat);
-    
+
     out.add(SuggestionRecord(
       id: SuggestionId(entry.key),
       kind: kind,
       author: recMap['author'] as String,
       createdAt: (recMap['createdAt'] as num).toInt(),
-      proposedAttrs: recMap['proposedAttrs'] != null ? _decodeProposedAttrs(recMap['proposedAttrs']) : null,
+      proposedAttrs: recMap['proposedAttrs'] != null
+          ? _decodeProposedAttrs(recMap['proposedAttrs'])
+          : null,
     ));
   }
   return out;

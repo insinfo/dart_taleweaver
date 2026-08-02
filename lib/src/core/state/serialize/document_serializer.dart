@@ -26,7 +26,8 @@ class UnknownSerializerFormatError extends Error {
   UnknownSerializerFormatError(this.format);
 
   @override
-  String toString() => 'UnknownSerializerFormatError: No document serializer registered for format "$format"';
+  String toString() =>
+      'UnknownSerializerFormatError: No document serializer registered for format "$format"';
 }
 
 /// Thrown by a serializer's decode when the wire data is structurally invalid.
@@ -36,5 +37,6 @@ class MalformedDocumentError extends Error {
   MalformedDocumentError(this.format);
 
   @override
-  String toString() => 'MalformedDocumentError: Malformed document for format "$format"';
+  String toString() =>
+      'MalformedDocumentError: Malformed document for format "$format"';
 }
