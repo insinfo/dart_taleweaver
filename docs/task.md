@@ -141,9 +141,16 @@
 
 ## Fase 12 — Digital backend
 - `[x]` Conversão inicial de ComputedStyle para CSS inline
+- `[x]` Ponte inicial RenderNode -> `package:web` DOM
 - `[ ]` Render State/RenderNode para `package:web` DOM
 - `[ ]` Reconciler incremental e selection bridge
 - `[ ]` beforeinput/key mapping e controller contenteditable
 
 ## Fase 4 — Componentes
 - `[ ]` `components` e `registry`
+
+## Fase 14 — Demo web
+- `[x]` `web/index.html`
+- `[x]` `web/main.dart` com toolbar e host contenteditable inicial
+- `[x]` Entry point compila com `dart compile js`
+- `[ ]` Integração completa do reducer/editor com eventos DOM
