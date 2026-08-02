@@ -1,0 +1,10 @@
+{
+  "dart.analysisExcludedFolders": [
+    "referencias"
+  ],
+  "search.exclude": {
+    "**/referencias": true,
+    "**/referencias/**": true
+  },
+  "js/ts.validate.enabled": false
+}

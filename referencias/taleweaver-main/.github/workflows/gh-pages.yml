@@ -1,0 +1,51 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build libraries
+        run: npm run build -w packages/core -w packages/dom -w packages/react
+
+      - name: Build example
+        run: npm run build -w examples/react
+
+      - uses: actions/configure-pages@v5
+
+      - name: Delete stale pages artifact
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: github-pages
+          failOnError: false
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: examples/react/dist
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
