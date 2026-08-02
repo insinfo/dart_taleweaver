@@ -138,6 +138,7 @@
 - `[ ]` BFC/IFC, fragmentation, pagination e table layout
 - `[ ]` Cursor geométrico, hit-test e selection geometry
 - `[x]` IFC/BFC baseline para texto medido por clusters e quebra por largura
+- `[x]` Paginação baseline por altura útil em `PageBox`
 
 ## Fase 12 — Digital backend
 - `[x]` Conversão inicial de ComputedStyle para CSS inline
