@@ -84,6 +84,7 @@ export 'src/core/digital/computed_style_to_css.dart';
 export 'src/core/digital/render_to_dom.dart';
 export 'src/core/digital/map_before_input.dart';
 export 'src/core/digital/map_digital_key.dart';
+export 'src/core/render/render.dart';
 
 // ---------------------------------------------------------------------------
 // Yjs-compatible shared types (incremental port)

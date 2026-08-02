@@ -159,6 +159,11 @@
 ## Fase 4 — Componentes
 - `[ ]` `components` e `registry`
 
+## Fase 6 — Render tree
+- `[x]` RenderState recursivo via ComponentRegistry
+- `[x]` ElementBox/TextBox para blocos e inline content
+- `[ ]` Cascade completo, incremental render, footnotes, TOC e cross-references
+
 ## Fase 14 — Demo web
 - `[x]` `web/index.html`
 - `[x]` `web/main.dart` com toolbar e host contenteditable inicial
