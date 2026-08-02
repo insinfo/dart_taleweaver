@@ -75,6 +75,8 @@ export 'src/core/editor/editor_state.dart';
 export 'src/core/print/layout/layout_box.dart';
 export 'src/core/print/layout/page_box.dart';
 export 'src/core/print/layout/page_config.dart';
+export 'src/core/print/layout/ifc.dart';
+export 'src/core/print/layout/bfc.dart';
 
 // ---------------------------------------------------------------------------
 // Yjs-compatible shared types (incremental port)

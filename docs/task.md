@@ -137,6 +137,7 @@
 - `[x]` Page size, margins, page gap e content geometry
 - `[ ]` BFC/IFC, fragmentation, pagination e table layout
 - `[ ]` Cursor geométrico, hit-test e selection geometry
+- `[x]` IFC/BFC baseline para texto medido por clusters e quebra por largura
 
 ## Fase 4 — Componentes
 - `[ ]` `components` e `registry`
