@@ -92,3 +92,4 @@ export 'src/yjs/encoding.dart';
 export 'src/yjs/id.dart';
 export 'src/yjs/structs.dart';
 export 'src/yjs/update_codec.dart';
+export 'src/yjs/relative_position.dart';

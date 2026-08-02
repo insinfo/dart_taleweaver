@@ -99,6 +99,7 @@
 - `[x]` Store CRDT com `ID`, `Item`, `GC` e `Skip`
 - `[ ]` Updates V1/V2 e merge/diff byte-compatíveis com Yjs
 - `[ ]` Snapshots e relative positions
+- `[x]` Relative positions baseline para YText raiz, JSON e resolução local
 - `[ ]` UndoManager compatível
 - `[ ]` Portar a suíte completa de `referencias/yjs-main/tests`
 
