@@ -6,6 +6,7 @@ import 'structs.dart';
 import 'types.dart';
 
 typedef YDocObserver = void Function(YTransaction transaction);
+typedef YUpdateObserver = void Function(List<YStruct> structs, Object? origin);
 
 class YTransaction {
   final YDoc doc;
@@ -19,7 +20,9 @@ class YDoc {
   static int _nextClientId = 1;
   final Map<String, YType> _share = {};
   final List<YDocObserver> _afterTransaction = [];
+  final List<YUpdateObserver> _updateObservers = [];
   final List<YEvent> _pendingEvents = [];
+  final List<YStruct> _pendingStructs = [];
   int _transactionDepth = 0;
   Object? _origin;
 
@@ -60,6 +63,8 @@ class YDoc {
       _afterTransaction.add(observer);
   void offAfterTransaction(YDocObserver observer) =>
       _afterTransaction.remove(observer);
+  void onUpdate(YUpdateObserver observer) => _updateObservers.add(observer);
+  void offUpdate(YUpdateObserver observer) => _updateObservers.remove(observer);
 
   T transact<T>(T Function() callback, {Object? origin}) {
     _transactionDepth++;
@@ -71,6 +76,8 @@ class YDoc {
       if (_transactionDepth == 0) {
         final events = List<YEvent>.of(_pendingEvents);
         _pendingEvents.clear();
+        final structs = List<YStruct>.of(_pendingStructs);
+        _pendingStructs.clear();
         final transaction = YTransaction(this, _origin, events);
         _origin = null;
         if (events.isNotEmpty) {
@@ -81,6 +88,11 @@ class YDoc {
           }
           for (final observer in List<YDocObserver>.of(_afterTransaction)) {
             observer(transaction);
+          }
+        }
+        if (structs.isNotEmpty) {
+          for (final observer in List<YUpdateObserver>.of(_updateObservers)) {
+            observer(List<YStruct>.unmodifiable(structs), transaction.origin);
           }
         }
       }
@@ -106,8 +118,21 @@ class YDoc {
   /// method only records the causal struct in the document store.
   YId recordStruct({required int length, required dynamic content}) {
     if (length <= 0) throw ArgumentError.value(length, 'length');
+    if (_transactionDepth == 0) {
+      late YId result;
+      transact(() {
+        result = _recordStruct(length: length, content: content);
+      });
+      return result;
+    }
+    return _recordStruct(length: length, content: content);
+  }
+
+  YId _recordStruct({required int length, required dynamic content}) {
     final id = YId(clientId, store.getClock(clientId));
-    store.add(YItem(id, length, content));
+    final struct = YItem(id, length, content);
+    store.add(struct);
+    _pendingStructs.add(struct);
     return id;
   }
 }

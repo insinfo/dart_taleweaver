@@ -96,6 +96,7 @@
 - `[x]` Structs `YItem`, `YGC`, `YSkip` e `YStructStore` com integridade
 - `[x]` Codec interno versionado, merge, aplicação e convergência de updates
 - `[x]` Operações locais de Array/Text geram structs e updates
+- `[x]` `YDoc.onUpdate` com batching, origem e ordem de structs
 - `[x]` Store CRDT com `ID`, `Item`, `GC` e `Skip`
 - `[ ]` Updates V1/V2 e merge/diff byte-compatíveis com Yjs
 - `[ ]` Snapshots e relative positions

@@ -86,4 +86,22 @@ void main() {
     expect(encodeStateAsUpdate(target),
         mergeUpdates([encodeStateAsUpdate(source)]));
   });
+
+  test('YDoc emits one update event for structs created in a transaction', () {
+    final doc = YDoc(clientId: 21);
+    final updates = <List<YStruct>>[];
+    Object? origin;
+    doc.onUpdate((structs, value) {
+      updates.add(structs);
+      origin = value;
+    });
+    doc.transact(() {
+      doc.recordStruct(length: 1, content: 'a');
+      doc.recordStruct(length: 1, content: 'b');
+    }, origin: 'local');
+
+    expect(updates, hasLength(1));
+    expect(updates.single.map((value) => value.id.clock), [0, 1]);
+    expect(origin, 'local');
+  });
 }
