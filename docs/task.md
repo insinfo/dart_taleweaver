@@ -102,6 +102,7 @@
 - `[ ]` Snapshots e relative positions
 - `[x]` Relative positions baseline para YText raiz, JSON e resolução local
 - `[ ]` UndoManager compatível
+- `[x]` UndoManager baseline para snapshots do YStructStore
 - `[ ]` Portar a suíte completa de `referencias/yjs-main/tests`
 
 ## Fase 3 — Layer 4 View / Layout Adapters
