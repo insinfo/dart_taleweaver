@@ -141,6 +141,7 @@
 - `[ ]` Cursor geométrico, hit-test e selection geometry
 - `[x]` IFC/BFC baseline para texto medido por clusters e quebra por largura
 - `[x]` Paginação baseline por altura útil em `PageBox`
+- `[x]` Hit-test textual baseline para PageBox/LineBox/TextRunBox
 
 ## Fase 12 — Digital backend
 - `[x]` Conversão inicial de ComputedStyle para CSS inline
