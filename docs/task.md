@@ -93,7 +93,8 @@
 - `[x]` Codificação/decodificação varint com inteiros signed/unsigned
 - `[x]` `YId` e state vectors com codec determinístico
 - `[x]` Structs `YItem`, `YGC`, `YSkip` e `YStructStore` com integridade
-- `[ ]` Store CRDT com `ID`, `Item`, `GC` e `Skip`
+- `[x]` Codec interno versionado, merge, aplicação e convergência de updates
+- `[x]` Store CRDT com `ID`, `Item`, `GC` e `Skip`
 - `[ ]` Updates V1/V2, merge/diff e state vectors
 - `[ ]` Snapshots e relative positions
 - `[ ]` UndoManager compatível
