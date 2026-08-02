@@ -6,9 +6,9 @@ O objetivo deste plano é a portabilidade integral de `referencias/yjs-main` e `
 
 ### Estado da portabilidade
 
-O código ativo está em `lib/src/core`. A antiga árvore `lib/src` não é uma segunda implementação: ela foi substituída pela organização `core` e não deve ser reintroduzida como compatibilidade artificial. A fundação de estado já possui as operações Layer 3 e os componentes/cascade iniciais, mas a portabilidade ainda não está completa.
+O código ativo está em `lib/src/`. A antiga árvore `lib/src` não é uma segunda implementação: ela foi substituída pela organização `core` e não deve ser reintroduzida como compatibilidade artificial. A fundação de estado já possui as operações Layer 3 e os componentes/cascade iniciais, mas a portabilidade ainda não está completa.
 
-**Última etapa concluída:** transações `TwDoc`/`applyOperation` com dirty tracking automático das três árvores de blocos, snapshots profundos e contrato de no-op validado por testes em `test/state_transaction_test.dart`; além do núcleo Yjs Dart local (`YDoc`, tipos integrados Map/Array/Text, transações, observadores, `YIdSet`, IDs, state vectors, structs, store, clocks locais e codec de updates interno), validado pela suíte Dart em `test/`.
+**Última etapa concluída:** transações `TwDoc`/`applyOperation` com dirty tracking automático das três árvores de blocos, snapshots profundos e contrato de no-op validado por testes em `test/state_transaction_test.dart`; o núcleo Yjs Dart local; cursor geometry-free; e a base de layout text (`TextShaper`, `TextMeasurer`, mock shaper, tokenização, transform, spacing e `Mat2D`), todos cobertos pela suíte Dart em `test/`.
 
 **Próxima etapa obrigatória:** substituir o codec interno pelo formato byte a byte de `referencias/yjs-main` (UpdateEncoder/Decoder V1 e V2), integrar operações do `YDoc` ao store, implementar resolução de conflitos/pending structs, snapshots, relative positions e UndoManager. O núcleo atual ainda não é compatível com colaboração JavaScript.
 
@@ -23,7 +23,7 @@ O projeto TypeScript é um monorepo com a seguinte estrutura:
 | `@taleweaver/core` | ~273 | Motor do documento: state (Y.Doc), styles/cascade, render tree, layout text, cursor, editor, components, footnotes, numbering, accessibility, serialização |
 | `@taleweaver/print` | ~86 | Backend de impressão/paginação: layout geométrico (BFC/IFC), canvas renderer, cursor geométrico, DOM mirror, editor controller, PDF export |
 | `@taleweaver/digital` | ~8 | Backend digital: renderizar State → DOM (contenteditable), reconciler, selection bridge |
-| `@taleweaver/react` | ~3 | Wrapper React (não portar) |
+| `@taleweaver/react` | ~3 | Wrapper React (não portar)  criar um projeto de exemplo que demostre o editor a ideia é que este editor sej completo e auto contido e personalizavel e extensivel e possa ser usado embutido em qualquer aplicação web sendo dart puro ngdart ou mesmo aplicações javascript ou typescript pois o editor pode ter uma api javascript atraves de dart js interop com exportações de API npublica|
 | `@taleweaver/hyphenation-en-us` | ~2 | Dados de hifenização (Knuth-Liang patterns) |
 
 ### Dependência Crítica: Yjs

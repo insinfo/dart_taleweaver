@@ -42,6 +42,26 @@ export 'src/core/state/list_defs.dart';
 export 'src/core/state/build_document_from_tree.dart';
 
 // ---------------------------------------------------------------------------
+// Geometry-free cursor
+// ---------------------------------------------------------------------------
+export 'src/core/cursor/cursor_ops.dart';
+export 'src/core/cursor/grapheme_utils.dart';
+export 'src/core/cursor/object_selection.dart';
+export 'src/core/cursor/selection.dart';
+
+// ---------------------------------------------------------------------------
+// Text layout core
+// ---------------------------------------------------------------------------
+export 'src/core/layout/graphemes.dart';
+export 'src/core/layout/mat2d.dart';
+export 'src/core/layout/mock_shaper.dart';
+export 'src/core/layout/text_measurer.dart';
+export 'src/core/layout/text_shaper.dart';
+export 'src/core/layout/text_spacing.dart';
+export 'src/core/layout/text_tokenize.dart';
+export 'src/core/layout/text_transform.dart';
+
+// ---------------------------------------------------------------------------
 // Yjs-compatible shared types (incremental port)
 // ---------------------------------------------------------------------------
 export 'src/yjs/doc.dart';

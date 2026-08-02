@@ -105,5 +105,23 @@
 ## Fase 3 — Layer 4 View / Layout Adapters
 - `[ ]` `layout_adapters` e `view_trees`
 
+## Fase 7 — Cursor geometry-free
+- `[x]` Grapheme boundaries e word boundaries em offsets UTF-16
+- `[x]` Movimento por caractere e palavra entre blocos folha
+- `[x]` Seleção de palavra e expansão de seleção
+- `[x]` Predicados de seleção e seleção de objetos
+- `[ ]` Equivalência completa com todos os testes TS de cursor
+
+## Fase 7 — Layout text core
+- `[x]` Grapheme segmentation compartilhada com cursor e shaper
+- `[x]` Tokenização de white-space e mandatory line breaks
+- `[x]` Text transform com mapeamento source/display
+- `[x]` Mat2D affine, composição, aplicação e inversão
+- `[x]` TextShaper/TextMeasurer e mock shaper
+- `[x]` Text spacing e break opportunities básicas
+- `[ ]` UAX #14 completo e tabelas Unicode
+- `[ ]` UAX #9 bidi completo e tabelas Unicode
+- `[ ]` Intrinsic sizes, hyphenation e shaping Canvas
+
 ## Fase 4 — Componentes
 - `[ ]` `components` e `registry`
