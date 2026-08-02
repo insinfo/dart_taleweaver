@@ -36,7 +36,7 @@ class AttrRegistry {
     // However, since toStyle returns a Style with nullable fields, we just merge them.
     // Wait, the merging of multiple Styles requires a custom merge function.
     // We will accumulate by picking the non-null value from the latest contribution.
-    
+
     Display? display;
     WritingMode? writingMode;
     Direction? direction;
@@ -135,18 +135,27 @@ class AttrRegistry {
       paddingBlockEnd = contrib.paddingBlockEnd ?? paddingBlockEnd;
       paddingInlineStart = contrib.paddingInlineStart ?? paddingInlineStart;
       paddingInlineEnd = contrib.paddingInlineEnd ?? paddingInlineEnd;
-      borderBlockStartWidth = contrib.borderBlockStartWidth ?? borderBlockStartWidth;
+      borderBlockStartWidth =
+          contrib.borderBlockStartWidth ?? borderBlockStartWidth;
       borderBlockEndWidth = contrib.borderBlockEndWidth ?? borderBlockEndWidth;
-      borderInlineStartWidth = contrib.borderInlineStartWidth ?? borderInlineStartWidth;
-      borderInlineEndWidth = contrib.borderInlineEndWidth ?? borderInlineEndWidth;
-      borderBlockStartStyle = contrib.borderBlockStartStyle ?? borderBlockStartStyle;
+      borderInlineStartWidth =
+          contrib.borderInlineStartWidth ?? borderInlineStartWidth;
+      borderInlineEndWidth =
+          contrib.borderInlineEndWidth ?? borderInlineEndWidth;
+      borderBlockStartStyle =
+          contrib.borderBlockStartStyle ?? borderBlockStartStyle;
       borderBlockEndStyle = contrib.borderBlockEndStyle ?? borderBlockEndStyle;
-      borderInlineStartStyle = contrib.borderInlineStartStyle ?? borderInlineStartStyle;
-      borderInlineEndStyle = contrib.borderInlineEndStyle ?? borderInlineEndStyle;
-      borderBlockStartColor = contrib.borderBlockStartColor ?? borderBlockStartColor;
+      borderInlineStartStyle =
+          contrib.borderInlineStartStyle ?? borderInlineStartStyle;
+      borderInlineEndStyle =
+          contrib.borderInlineEndStyle ?? borderInlineEndStyle;
+      borderBlockStartColor =
+          contrib.borderBlockStartColor ?? borderBlockStartColor;
       borderBlockEndColor = contrib.borderBlockEndColor ?? borderBlockEndColor;
-      borderInlineStartColor = contrib.borderInlineStartColor ?? borderInlineStartColor;
-      borderInlineEndColor = contrib.borderInlineEndColor ?? borderInlineEndColor;
+      borderInlineStartColor =
+          contrib.borderInlineStartColor ?? borderInlineStartColor;
+      borderInlineEndColor =
+          contrib.borderInlineEndColor ?? borderInlineEndColor;
       backgroundColor = contrib.backgroundColor ?? backgroundColor;
       fontFamily = contrib.fontFamily ?? fontFamily;
       fontSize = contrib.fontSize ?? fontSize;

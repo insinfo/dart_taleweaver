@@ -1,7 +1,6 @@
 /// Suggestion insert operations.
 library;
 
-
 import '../../attrs.dart';
 import '../../block_compare.dart';
 import '../../block_position.dart';
@@ -137,7 +136,8 @@ OperationResult replaceWithSuggestion(State state, Span span, String text,
           insertAttrs,
           customEquals: customEquals,
         )
-      : planInsertText(state, start, text, insertAttrs, customEquals: customEquals);
+      : planInsertText(state, start, text, insertAttrs,
+          customEquals: customEquals);
 
   return applyOperation(state, (d) {
     for (final write in delPlan.writes) {

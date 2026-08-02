@@ -35,9 +35,10 @@ DeleteTableColumnPlan planDeleteTableColumn(State state, TableContext ctx) {
   final colIndex = ctx.colIndex;
   final caretRowCells = ctx.cellIdsByRow[ctx.rowIndex];
   final colCount = caretRowCells.length;
-  
+
   if (colCount <= 1) {
-    throw StateError('deleteTableColumn: last column must collapse the whole table');
+    throw StateError(
+        'deleteTableColumn: last column must collapse the whole table');
   }
 
   final cellPlans = <RemoveBlockPlan>[];
@@ -52,10 +53,11 @@ DeleteTableColumnPlan planDeleteTableColumn(State state, TableContext ctx) {
   final table = getBlock(state, ctx.tableId);
   final cw = table?.attrs['columnWidths'];
   ReadonlyAttrs? newTableAttrs;
-  
+
   if (table != null && isColumnWidths(cw)) {
     newTableAttrs = Map<String, dynamic>.of(table.attrs);
-    newTableAttrs['columnWidths'] = removeColumnWidth(parseColumnWidths(cw), colIndex);
+    newTableAttrs['columnWidths'] =
+        removeColumnWidth(parseColumnWidths(cw), colIndex);
   }
 
   return DeleteTableColumnPlan(

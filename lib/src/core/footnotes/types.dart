@@ -5,7 +5,8 @@ library;
 
 import '../state/block_id.dart';
 
-typedef CounterFormat = String; // "decimal" | "lower-roman" | "upper-roman" | "lower-alpha" | "upper-alpha" | "symbol"
+typedef CounterFormat
+    = String; // "decimal" | "lower-roman" | "upper-roman" | "lower-alpha" | "upper-alpha" | "symbol"
 
 class FootnoteAnchorRef {
   final BlockId contentBlockId;
@@ -20,7 +21,8 @@ class FootnoteAnchorRef {
 }
 
 class FootnoteNumberingPolicy {
-  final String reset; // "continuous" | "restart-per-section" | "restart-per-page"
+  final String
+      reset; // "continuous" | "restart-per-section" | "restart-per-page"
   final CounterFormat format;
 
   const FootnoteNumberingPolicy({

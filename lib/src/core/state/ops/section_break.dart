@@ -37,11 +37,13 @@ class SectionBreakPlan {
   });
 }
 
-SectionBreakResult applySectionBreak(State state, Position cursor, IdAllocator allocator) {
+SectionBreakResult applySectionBreak(
+    State state, Position cursor, IdAllocator allocator) {
   final plan = buildSectionBreakPlan(state, cursor, allocator);
 
   if (plan == null) {
-    return SectionBreakResult(OperationResult(state: state, dirtyIds: const {}), cursor.blockId);
+    return SectionBreakResult(
+        OperationResult(state: state, dirtyIds: const {}), cursor.blockId);
   }
 
   final result = applyOperation(state, (doc) {
@@ -49,12 +51,15 @@ SectionBreakResult applySectionBreak(State state, Position cursor, IdAllocator a
   });
 
   final boundaryBlock = getBlock(result.state, plan.boundary);
-  final newCursorBlockId = boundaryBlock != null ? firstLeafBlock(result.state, boundaryBlock).id : plan.boundary;
+  final newCursorBlockId = boundaryBlock != null
+      ? firstLeafBlock(result.state, boundaryBlock).id
+      : plan.boundary;
 
   return SectionBreakResult(result, newCursorBlockId);
 }
 
-SectionBreakPlan? buildSectionBreakPlan(State state, Position cursor, IdAllocator allocator) {
+SectionBreakPlan? buildSectionBreakPlan(
+    State state, Position cursor, IdAllocator allocator) {
   final chain = ancestorChain(state, getBlock(state, cursor.blockId)!);
   if (!chain.map((b) => b.id).contains(state.rootId)) {
     throw StateError('applySectionBreak: cursor block not under root');
@@ -100,8 +105,10 @@ SectionBreakPlan? buildSectionBreakPlan(State state, Position cursor, IdAllocato
   while (cur != null) {
     if (++guard > maxSteps) throw StateError('cycle');
     if (cur == boundary) reachedBoundary = true;
-    if (reachedBoundary) atAfter.add(cur);
-    else before.add(cur);
+    if (reachedBoundary)
+      atAfter.add(cur);
+    else
+      before.add(cur);
 
     final b = getBlock(state, cur)!;
     cur = b.nextSiblingId;
@@ -116,7 +123,8 @@ SectionBreakPlan? buildSectionBreakPlan(State state, Position cursor, IdAllocato
     final aId = allocator.allocate();
     final bId = allocator.allocate();
 
-    final beforePlan = ReparentPlan(computeReparentWrites(ComputeReparentWritesOpts(
+    final beforePlan =
+        ReparentPlan(computeReparentWrites(ComputeReparentWritesOpts(
       moved: before,
       sourceParentId: state.rootId,
       sourceFirstChildId: containerFirstChildId,
@@ -129,7 +137,8 @@ SectionBreakPlan? buildSectionBreakPlan(State state, Position cursor, IdAllocato
       beforeSiblingPrevId: null,
     )));
 
-    final atAfterPlan = ReparentPlan(computeReparentWrites(ComputeReparentWritesOpts(
+    final atAfterPlan =
+        ReparentPlan(computeReparentWrites(ComputeReparentWritesOpts(
       moved: atAfter,
       sourceParentId: state.rootId,
       sourceFirstChildId: containerFirstChildId,
@@ -164,7 +173,8 @@ SectionBreakPlan? buildSectionBreakPlan(State state, Position cursor, IdAllocato
   final sPrimeId = allocator.allocate();
   final sOldNext = s.nextSiblingId;
 
-  final atAfterPlan = ReparentPlan(computeReparentWrites(ComputeReparentWritesOpts(
+  final atAfterPlan =
+      ReparentPlan(computeReparentWrites(ComputeReparentWritesOpts(
     moved: atAfter,
     sourceParentId: containerId,
     sourceFirstChildId: containerFirstChildId,
@@ -184,9 +194,11 @@ SectionBreakPlan? buildSectionBreakPlan(State state, Position cursor, IdAllocato
   ];
 
   if (sOldNext != null) {
-    pointerWrites.add(BlockFieldWrite(sOldNext, BlockFields.prevSiblingId, sPrimeId));
+    pointerWrites
+        .add(BlockFieldWrite(sOldNext, BlockFields.prevSiblingId, sPrimeId));
   } else {
-    pointerWrites.add(BlockFieldWrite(state.rootId, BlockFields.lastChildId, sPrimeId));
+    pointerWrites
+        .add(BlockFieldWrite(state.rootId, BlockFields.lastChildId, sPrimeId));
   }
 
   return SectionBreakPlan(

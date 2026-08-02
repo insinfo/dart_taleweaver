@@ -31,7 +31,8 @@ DeleteTableResult deleteTableWithReplacement(
   }
 
   final removePlan = planRemoveBlock(state, tableId);
-  final isSoleChild = table.prevSiblingId == null && table.nextSiblingId == null;
+  final isSoleChild =
+      table.prevSiblingId == null && table.nextSiblingId == null;
 
   if (!isSoleChild) {
     final result = applyOperation(state, (doc) {
@@ -43,14 +44,14 @@ DeleteTableResult deleteTableWithReplacement(
   final newParagraphId = allocator.allocate();
   final result = applyOperation(state, (doc) {
     removeBlockInTx(doc, removePlan);
-    
+
     doc.setBlockMap(newParagraphId.value, {
       BlockFields.type: 'paragraph',
       BlockFields.attrs: <String, dynamic>{},
       BlockFields.parentId: parentId.value,
       BlockFields.inlineContent: const InlineContent([]),
     });
-    
+
     final yParent = doc.getBlockMap(parentId.value);
     if (yParent != null) {
       yParent[BlockFields.firstChildId] = newParagraphId.value;

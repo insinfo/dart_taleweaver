@@ -72,14 +72,20 @@ InsertTableRowSpanAwarePlan? planInsertTableRowSpanAware(
   final caret = caretList.first;
 
   final rowCount = grid.occupancy.length;
-  final gr = position == RowPosition.above ? caret.gridRow : caret.gridRow + caret.rowSpan;
+  final gr = position == RowPosition.above
+      ? caret.gridRow
+      : caret.gridRow + caret.rowSpan;
 
   final crossingIds = <BlockId>{};
   final newColumns = <int>[];
 
   for (int c = 0; c < grid.columnCount; c++) {
-    final above = gr - 1 >= 0 ? (c < grid.occupancy[gr - 1].length ? grid.occupancy[gr - 1][c] : null) : null;
-    final below = gr < rowCount ? (c < grid.occupancy[gr].length ? grid.occupancy[gr][c] : null) : null;
+    final above = gr - 1 >= 0
+        ? (c < grid.occupancy[gr - 1].length ? grid.occupancy[gr - 1][c] : null)
+        : null;
+    final below = gr < rowCount
+        ? (c < grid.occupancy[gr].length ? grid.occupancy[gr][c] : null)
+        : null;
     if (above != null && above == below) {
       crossingIds.add(above);
     } else {
@@ -91,22 +97,29 @@ InsertTableRowSpanAwarePlan? planInsertTableRowSpanAware(
     final cell = grid.cells.firstWhere((c) => c.cellId == cellId);
     final block = getBlock(state, cellId);
     if (block == null) {
-      throw StateError('insertTableRowSpanAware: crossing cell "$cellId" not found in state');
+      throw StateError(
+          'insertTableRowSpanAware: crossing cell "$cellId" not found in state');
     }
     final newAttrs = Map<String, dynamic>.of(block.attrs);
     newAttrs['rowSpan'] = cell.rowSpan + 1;
     return _InsertTableRowSpanAwareBump(cellId, newAttrs);
   }).toList();
 
-  final newCells = newColumns.map((_) => _InsertTableRowSpanAwareCell(
-    allocator.allocate(),
-    allocator.allocate(),
-  )).toList();
+  final newCells = newColumns
+      .map((_) => _InsertTableRowSpanAwareCell(
+            allocator.allocate(),
+            allocator.allocate(),
+          ))
+      .toList();
 
-  final prevRowId = gr - 1 >= 0 ? (gr - 1 < ctx.rowIds.length ? ctx.rowIds[gr - 1] : null) : null;
-  final nextRowId = gr < rowCount ? (gr < ctx.rowIds.length ? ctx.rowIds[gr] : null) : null;
+  final prevRowId = gr - 1 >= 0
+      ? (gr - 1 < ctx.rowIds.length ? ctx.rowIds[gr - 1] : null)
+      : null;
+  final nextRowId =
+      gr < rowCount ? (gr < ctx.rowIds.length ? ctx.rowIds[gr] : null) : null;
 
-  final headerAttrs = headerRowAttrsAfterRowEdit(state, ctx.tableId, RowEditOp.insert, gr);
+  final headerAttrs =
+      headerRowAttrsAfterRowEdit(state, ctx.tableId, RowEditOp.insert, gr);
 
   return InsertTableRowSpanAwarePlan(
     tableId: ctx.tableId,
@@ -154,25 +167,31 @@ void insertTableRowSpanAwareInTx(TwDoc doc, InsertTableRowSpanAwarePlan plan) {
     BlockFields.type: 'table-row',
     BlockFields.attrs: <String, dynamic>{},
     BlockFields.parentId: plan.tableId.value,
-    if (plan.prevRowId != null) BlockFields.prevSiblingId: plan.prevRowId!.value,
-    if (plan.nextRowId != null) BlockFields.nextSiblingId: plan.nextRowId!.value,
+    if (plan.prevRowId != null)
+      BlockFields.prevSiblingId: plan.prevRowId!.value,
+    if (plan.nextRowId != null)
+      BlockFields.nextSiblingId: plan.nextRowId!.value,
     if (cells.isNotEmpty) BlockFields.firstChildId: cells.first.cellId.value,
     if (cells.isNotEmpty) BlockFields.lastChildId: cells.last.cellId.value,
   });
 
   if (plan.prevRowId != null) {
-    doc.getBlockMap(plan.prevRowId!.value)?[BlockFields.nextSiblingId] = plan.newRowId.value;
+    doc.getBlockMap(plan.prevRowId!.value)?[BlockFields.nextSiblingId] =
+        plan.newRowId.value;
     doc.markDirty(plan.prevRowId!.value);
   }
   if (plan.nextRowId != null) {
-    doc.getBlockMap(plan.nextRowId!.value)?[BlockFields.prevSiblingId] = plan.newRowId.value;
+    doc.getBlockMap(plan.nextRowId!.value)?[BlockFields.prevSiblingId] =
+        plan.newRowId.value;
     doc.markDirty(plan.nextRowId!.value);
   }
   if (plan.prevRowId == null || plan.nextRowId == null) {
     final yTable = doc.getBlockMap(plan.tableId.value);
     if (yTable != null) {
-      if (plan.prevRowId == null) yTable[BlockFields.firstChildId] = plan.newRowId.value;
-      if (plan.nextRowId == null) yTable[BlockFields.lastChildId] = plan.newRowId.value;
+      if (plan.prevRowId == null)
+        yTable[BlockFields.firstChildId] = plan.newRowId.value;
+      if (plan.nextRowId == null)
+        yTable[BlockFields.lastChildId] = plan.newRowId.value;
       doc.markDirty(plan.tableId.value);
     }
   }

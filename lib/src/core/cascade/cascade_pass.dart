@@ -26,13 +26,15 @@ RenderNode _cascadeNode(RenderNode node, ComputedStyle? parentComputed) {
   if (node is TextBox) {
     return node.copyWith(computedStyle: computed);
   } else if (node is ElementBox) {
-    final newChildren = node.children.map((c) => _cascadeNode(c, computed)).toList(growable: false);
+    final newChildren = node.children
+        .map((c) => _cascadeNode(c, computed))
+        .toList(growable: false);
     return node.copyWith(
       computedStyle: computed,
       children: newChildren,
     );
   }
-  
+
   throw StateError('Unknown node type');
 }
 
@@ -43,7 +45,8 @@ RenderNode cascadePassIncremental(
 ) {
   final t = markStart('cascadePassIncremental');
   try {
-    return _cascadeNodeIncremental(newRoot, oldRoot, oldCascadedRoot, null, null);
+    return _cascadeNodeIncremental(
+        newRoot, oldRoot, oldCascadedRoot, null, null);
   } finally {
     markEnd('cascadePassIncremental', t);
   }
@@ -74,9 +77,12 @@ RenderNode _cascadeNodeIncremental(
   if (newNode is TextBox) {
     return newNode.copyWith(computedStyle: computed);
   } else if (newNode is ElementBox) {
-    final oldChildren = (oldNode is ElementBox) ? oldNode.children : const <RenderNode>[];
-    final oldCascadedChildren = (oldCascaded is ElementBox) ? oldCascaded.children : const <RenderNode>[];
-    
+    final oldChildren =
+        (oldNode is ElementBox) ? oldNode.children : const <RenderNode>[];
+    final oldCascadedChildren = (oldCascaded is ElementBox)
+        ? oldCascaded.children
+        : const <RenderNode>[];
+
     final oldByKey = <String, _OldNodes>{};
     for (var i = 0; i < oldChildren.length; i++) {
       if (i < oldCascadedChildren.length) {
@@ -115,7 +121,7 @@ class _OldNodes {
 }
 
 // In TS it uses a reflection-like walk of PROPERTY_META.
-// In Dart we can just do equality checks on the fields. 
+// In Dart we can just do equality checks on the fields.
 // Since our ComputedStyle class is an immutable struct, we just implement `==` on it.
 bool computedStylesEqual(ComputedStyle a, ComputedStyle b) {
   return identical(a, b) || a == b;

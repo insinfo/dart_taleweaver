@@ -50,10 +50,11 @@ List<LeafWrite> planCommentMarkers(
     final leaf = _resolveLeaf(state, start.blockId);
     _requireInRange(leaf.$1, start.offset, start.blockId);
     _requireInRange(leaf.$1, end.offset, end.blockId);
-    
+
     final afterEnd = _spliceMarker(leaf.$1, end.offset, endMarker);
-    final afterStart = _spliceMarker(InlineContent(afterEnd), start.offset, startMarker);
-    
+    final afterStart =
+        _spliceMarker(InlineContent(afterEnd), start.offset, startMarker);
+
     return [
       LeafWrite(blockId: start.blockId, kind: leaf.$2, items: afterStart),
     ];
@@ -61,7 +62,7 @@ List<LeafWrite> planCommentMarkers(
 
   final startLeaf = _resolveLeaf(state, start.blockId);
   _requireInRange(startLeaf.$1, start.offset, start.blockId);
-  
+
   final endLeaf = _resolveLeaf(state, end.blockId);
   _requireInRange(endLeaf.$1, end.offset, end.blockId);
 
@@ -105,7 +106,8 @@ void _requireInRange(InlineContent content, int offset, BlockId blockId) {
   }
 }
 
-List<InlineItem> _spliceMarker(InlineContent content, int offset, EmbedItem marker) {
+List<InlineItem> _spliceMarker(
+    InlineContent content, int offset, EmbedItem marker) {
   final split = splitInlineContentAtOffset(content, offset);
   return mergeAdjacentTextItems([...split.$1, marker, ...split.$2]);
 }
@@ -117,7 +119,7 @@ void applyCommentMarkerWritesInTx(TwDoc doc, List<LeafWrite> writes) {
         : (write.kind == ResolvedBlockKind.template
             ? doc.getTemplateContentMap(write.blockId.value)
             : doc.getBlockMap(write.blockId.value));
-    
+
     if (yBlock != null) {
       yBlock['inlineContent'] = InlineContent(write.items);
       doc.markDirty(write.blockId.value);

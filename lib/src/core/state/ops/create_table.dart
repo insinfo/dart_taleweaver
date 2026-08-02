@@ -61,8 +61,7 @@ TableSubtreePlan buildTableSubtreePlan(
   IdAllocator allocator,
 ) {
   if (rows < 1 || cols < 1) {
-    throw ArgumentError(
-        'createTable: minimum 1x1, got ${rows}x$cols');
+    throw ArgumentError('createTable: minimum 1x1, got ${rows}x$cols');
   }
 
   final tableId = allocator.allocate();
@@ -231,7 +230,9 @@ void createTableInTx(TwDoc doc, CreateTablePlan plan) {
 
   doc.setBlockMap(tableId.value, {
     BlockFields.type: 'table',
-    BlockFields.attrs: <String, dynamic>{'columnWidths': [...columnWidths]},
+    BlockFields.attrs: <String, dynamic>{
+      'columnWidths': [...columnWidths]
+    },
     BlockFields.parentId: plan.parentId.value,
     if (plan.afterId != null) BlockFields.prevSiblingId: plan.afterId!.value,
     if (plan.beforeId != null) BlockFields.nextSiblingId: plan.beforeId!.value,
@@ -240,17 +241,21 @@ void createTableInTx(TwDoc doc, CreateTablePlan plan) {
   });
 
   if (plan.afterId != null) {
-    doc.getBlockMap(plan.afterId!.value)?[BlockFields.nextSiblingId] = tableId.value;
+    doc.getBlockMap(plan.afterId!.value)?[BlockFields.nextSiblingId] =
+        tableId.value;
     doc.markDirty(plan.afterId!.value);
   } else {
-    doc.getBlockMap(plan.parentId.value)?[BlockFields.firstChildId] = tableId.value;
+    doc.getBlockMap(plan.parentId.value)?[BlockFields.firstChildId] =
+        tableId.value;
   }
 
   if (plan.beforeId != null) {
-    doc.getBlockMap(plan.beforeId!.value)?[BlockFields.prevSiblingId] = tableId.value;
+    doc.getBlockMap(plan.beforeId!.value)?[BlockFields.prevSiblingId] =
+        tableId.value;
     doc.markDirty(plan.beforeId!.value);
   } else {
-    doc.getBlockMap(plan.parentId.value)?[BlockFields.lastChildId] = tableId.value;
+    doc.getBlockMap(plan.parentId.value)?[BlockFields.lastChildId] =
+        tableId.value;
   }
   doc.markDirty(plan.parentId.value);
 }

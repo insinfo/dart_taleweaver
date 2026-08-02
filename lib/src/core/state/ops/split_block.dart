@@ -70,10 +70,12 @@ void splitBlockAtPositionInTx(TwDoc doc, SplitBlockPlan plan) {
 
   final inlineContent = yOriginal[BlockFields.inlineContent] as InlineContent?;
   if (inlineContent == null) {
-    throw StateError('splitBlockAtPositionInTx: original block has no inlineContent');
+    throw StateError(
+        'splitBlockAtPositionInTx: original block has no inlineContent');
   }
 
-  final (prefix, suffix) = splitInlineContentAtOffset(inlineContent, plan.offset);
+  final (prefix, suffix) =
+      splitInlineContentAtOffset(inlineContent, plan.offset);
 
   // Update original block (prefix)
   yOriginal[BlockFields.inlineContent] = InlineContent(prefix);
@@ -86,7 +88,8 @@ void splitBlockAtPositionInTx(TwDoc doc, SplitBlockPlan plan) {
     BlockFields.attrs: Map<String, dynamic>.of(plan.newAttrs),
     BlockFields.parentId: plan.parentId.value,
     BlockFields.prevSiblingId: plan.blockId.value,
-    if (plan.originalNextId != null) BlockFields.nextSiblingId: plan.originalNextId!.value,
+    if (plan.originalNextId != null)
+      BlockFields.nextSiblingId: plan.originalNextId!.value,
     BlockFields.inlineContent: InlineContent(suffix),
   };
   _setMap(doc, plan.newBlockId, plan.kind, newBlockMap);
@@ -103,7 +106,8 @@ void splitBlockAtPositionInTx(TwDoc doc, SplitBlockPlan plan) {
 
   // Rewire parent if original was last child
   final parentMap = _getMap(doc, plan.parentId, plan.kind);
-  if (parentMap != null && parentMap[BlockFields.lastChildId] == plan.blockId.value) {
+  if (parentMap != null &&
+      parentMap[BlockFields.lastChildId] == plan.blockId.value) {
     parentMap[BlockFields.lastChildId] = plan.newBlockId.value;
     doc.markDirty(plan.parentId.value);
   }
@@ -122,11 +126,13 @@ SplitBlockPlan planSplitBlockAtPosition(
 }) {
   final resolved = resolveBlock(state, position.blockId);
   if (resolved == null) {
-    throw StateError('splitBlockAtPosition: block "${position.blockId}" not found');
+    throw StateError(
+        'splitBlockAtPosition: block "${position.blockId}" not found');
   }
   final block = resolved.block;
   if (block.inlineContent == null || block.firstChildId != null) {
-    throw StateError('splitBlockAtPosition: block "${position.blockId}" is a container, not a leaf');
+    throw StateError(
+        'splitBlockAtPosition: block "${position.blockId}" is a container, not a leaf');
   }
   if (block.parentId == null) {
     throw StateError('splitBlockAtPosition: root block cannot be split');
@@ -166,7 +172,8 @@ Map<String, dynamic>? _getMap(TwDoc doc, BlockId id, ResolvedBlockKind kind) {
   }
 }
 
-void _setMap(TwDoc doc, BlockId id, ResolvedBlockKind kind, Map<String, dynamic> data) {
+void _setMap(
+    TwDoc doc, BlockId id, ResolvedBlockKind kind, Map<String, dynamic> data) {
   switch (kind) {
     case ResolvedBlockKind.main:
       doc.setBlockMap(id.value, data);
@@ -177,25 +184,16 @@ void _setMap(TwDoc doc, BlockId id, ResolvedBlockKind kind, Map<String, dynamic>
   }
 }
 
-
 // ---------------------------------------------------------------------------
 // splitWithSuggestion
 // ---------------------------------------------------------------------------
 
-OperationResult splitWithSuggestion(
-  State state,
-  Position position,
-  IdAllocator allocator,
-  SuggestionMintInput input,
-  [Map<String, dynamic>? newBlockInit]
-) {
-  final plan = planSplitBlockAtPosition(
-    state, 
-    position, 
-    allocator, 
-    newType: newBlockInit?['type'] as String?, 
-    newAttrs: newBlockInit?['attrs'] as ReadonlyAttrs?
-  );
+OperationResult splitWithSuggestion(State state, Position position,
+    IdAllocator allocator, SuggestionMintInput input,
+    [Map<String, dynamic>? newBlockInit]) {
+  final plan = planSplitBlockAtPosition(state, position, allocator,
+      newType: newBlockInit?['type'] as String?,
+      newAttrs: newBlockInit?['attrs'] as ReadonlyAttrs?);
 
   final embed = EmbedItem(
     embedType: blockSplitSuggestionEmbedType,
@@ -205,13 +203,13 @@ OperationResult splitWithSuggestion(
 
   return applyOperation(state, (doc) {
     splitBlockAtPositionInTx(doc, plan);
-    
+
     final targetMap = plan.kind == ResolvedBlockKind.embed
         ? doc.getEmbedContentMap(plan.blockId.value)
         : (plan.kind == ResolvedBlockKind.template
             ? doc.getTemplateContentMap(plan.blockId.value)
             : doc.getBlockMap(plan.blockId.value));
-    
+
     if (targetMap != null) {
       final yItems = targetMap[BlockFields.inlineContent];
       if (yItems is InlineContent) {
@@ -221,11 +219,13 @@ OperationResult splitWithSuggestion(
       }
     }
 
-    writeSuggestionRecordInTx(doc, SuggestionRecord(
-      id: input.id,
-      kind: 'insertion',
-      author: input.author,
-      createdAt: input.createdAt,
-    ));
+    writeSuggestionRecordInTx(
+        doc,
+        SuggestionRecord(
+          id: input.id,
+          kind: 'insertion',
+          author: input.author,
+          createdAt: input.createdAt,
+        ));
   });
 }

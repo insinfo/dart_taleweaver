@@ -141,8 +141,7 @@ InlineContent? _readInlineContent(dynamic raw) {
             embedType: itemRaw['embedType'] as String? ?? '',
             attrs: _readAttrs(itemRaw['attrs']),
             properties: itemRaw['properties'] is Map
-                ? Map<String, dynamic>.from(
-                    itemRaw['properties'] as Map)
+                ? Map<String, dynamic>.from(itemRaw['properties'] as Map)
                 : const {},
           ));
         }

@@ -83,7 +83,7 @@ class UsedStyleLogicalSideContext implements LogicalSideContext {
 
 LogicalSideMap resolveLogicalSides(LogicalSideContext us) {
   final isRtl = us.direction == Direction.rtl;
-  
+
   switch (us.writingMode) {
     case WritingMode.horizontalTb:
       return LogicalSideMap(
@@ -95,8 +95,12 @@ LogicalSideMap resolveLogicalSides(LogicalSideContext us) {
     case WritingMode.verticalRl:
     case WritingMode.verticalLr:
       return LogicalSideMap(
-        blockStart: us.writingMode == WritingMode.verticalRl ? PhysicalSide.right : PhysicalSide.left,
-        blockEnd: us.writingMode == WritingMode.verticalRl ? PhysicalSide.left : PhysicalSide.right,
+        blockStart: us.writingMode == WritingMode.verticalRl
+            ? PhysicalSide.right
+            : PhysicalSide.left,
+        blockEnd: us.writingMode == WritingMode.verticalRl
+            ? PhysicalSide.left
+            : PhysicalSide.right,
         inlineStart: isRtl ? PhysicalSide.bottom : PhysicalSide.top,
         inlineEnd: isRtl ? PhysicalSide.top : PhysicalSide.bottom,
       );
@@ -156,17 +160,14 @@ PhysicalBorderSides physicalBorderSides(UsedStyle us) {
     rightWidth: width[PhysicalSide.right]!,
     bottomWidth: width[PhysicalSide.bottom]!,
     leftWidth: width[PhysicalSide.left]!,
-    
     topStyle: style[PhysicalSide.top]!,
     rightStyle: style[PhysicalSide.right]!,
     bottomStyle: style[PhysicalSide.bottom]!,
     leftStyle: style[PhysicalSide.left]!,
-    
     topColor: color[PhysicalSide.top]!,
     rightColor: color[PhysicalSide.right]!,
     bottomColor: color[PhysicalSide.bottom]!,
     leftColor: color[PhysicalSide.left]!,
-    
     topPadding: padding[PhysicalSide.top]!,
     rightPadding: padding[PhysicalSide.right]!,
     bottomPadding: padding[PhysicalSide.bottom]!,

@@ -154,7 +154,8 @@ void assertDeleteRangeEndpoints(State state, Span span) {
   if (!sameBlock) {
     final rawFocus = resolveBlock(state, span.focus.blockId)?.block;
     if (rawFocus == null) {
-      throw StateError('deleteRange: focus block "${span.focus.blockId}" not found');
+      throw StateError(
+          'deleteRange: focus block "${span.focus.blockId}" not found');
     }
     if (rawFocus.inlineContent == null || rawFocus.firstChildId != null) {
       throw StateError(
@@ -186,7 +187,8 @@ DeleteRangePlan? planDeleteRange(
       block.inlineContent!,
       normalized.focus.offset,
     );
-    final merged = mergeAdjacentTextItems([...prefix, ...suffix], customEquals: customEquals);
+    final merged = mergeAdjacentTextItems([...prefix, ...suffix],
+        customEquals: customEquals);
 
     final deletedLength = normalized.focus.offset - normalized.anchor.offset;
     final (deletedItems, _) = splitInlineContentAtOffset(
@@ -223,9 +225,11 @@ DeleteRangePlan? planDeleteRange(
   var cur = anchorBlock.nextSiblingId;
   while (cur != null && cur != focusBlock.id) {
     final node = resolveBlock(state, cur)?.block;
-    if (node == null) throw StateError('deleteRange: intervening sibling "$cur" not found');
+    if (node == null)
+      throw StateError('deleteRange: intervening sibling "$cur" not found');
     if (node.firstChildId != null || node.inlineContent == null) {
-      throw StateError('deleteRange: intervening sibling "$cur" is a container');
+      throw StateError(
+          'deleteRange: intervening sibling "$cur" is a container');
     }
     interveningIds.add(cur);
     cur = node.nextSiblingId;
@@ -245,7 +249,8 @@ DeleteRangePlan? planDeleteRange(
     focusBlock.inlineContent!,
     normalized.focus.offset,
   );
-  final mergedItems = mergeAdjacentTextItems([...anchorPrefix, ...focusSuffix], customEquals: customEquals);
+  final mergedItems = mergeAdjacentTextItems([...anchorPrefix, ...focusSuffix],
+      customEquals: customEquals);
 
   final embedContentIds = <BlockId>{};
   collectEmbedContentSubtreeFromInlineContent(
@@ -256,7 +261,8 @@ DeleteRangePlan? planDeleteRange(
   for (final id in interveningIds) {
     final block = resolveBlock(state, id)?.block;
     if (block?.inlineContent != null) {
-      collectEmbedContentSubtreeFromInlineContent(state, block!.inlineContent!, embedContentIds);
+      collectEmbedContentSubtreeFromInlineContent(
+          state, block!.inlineContent!, embedContentIds);
     }
   }
   collectEmbedContentSubtreeFromInlineContent(

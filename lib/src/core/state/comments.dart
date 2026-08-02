@@ -11,7 +11,9 @@ class CommentId {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is CommentId && runtimeType == other.runtimeType && value == other.value;
+      other is CommentId &&
+          runtimeType == other.runtimeType &&
+          value == other.value;
 
   @override
   int get hashCode => value.hashCode;
@@ -34,11 +36,11 @@ class CommentReply {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'author': author,
-    'body': body,
-    'createdAt': createdAt,
-  };
+        'id': id,
+        'author': author,
+        'body': body,
+        'createdAt': createdAt,
+      };
 }
 
 class CommentRecord {
@@ -70,7 +72,6 @@ void writeCommentRecordInTx(TwDoc doc, CommentRecord record) {
   };
 }
 
-
 List<CommentRecord> getComments(State state) {
   final List<CommentRecord> out = [];
   for (final entry in state.doc.comments.entries) {
@@ -79,12 +80,14 @@ List<CommentRecord> getComments(State state) {
       author: entry.value['author'],
       body: entry.value['body'],
       createdAt: entry.value['createdAt'],
-      replies: (entry.value['replies'] as List).map((r) => CommentReply(
-        id: r['id'],
-        author: r['author'],
-        body: r['body'],
-        createdAt: r['createdAt'],
-      )).toList(),
+      replies: (entry.value['replies'] as List)
+          .map((r) => CommentReply(
+                id: r['id'],
+                author: r['author'],
+                body: r['body'],
+                createdAt: r['createdAt'],
+              ))
+          .toList(),
       resolved: entry.value['resolved'],
     ));
   }

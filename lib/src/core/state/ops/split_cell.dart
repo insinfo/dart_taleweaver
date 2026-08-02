@@ -143,7 +143,7 @@ void splitCellInTx(TwDoc doc, SplitCellPlan plan) {
       final nextCell = i < seq.length - 1 ? seq[i + 1] : null;
       final prev = i == 0 ? row.prevCellId : prevCell?.cellId;
       final next = i == seq.length - 1 ? row.nextCellId : nextCell?.cellId;
-      
+
       doc.setBlockMap(nc.cellId.value, {
         BlockFields.type: 'table-cell',
         BlockFields.attrs: <String, dynamic>{},
@@ -154,7 +154,7 @@ void splitCellInTx(TwDoc doc, SplitCellPlan plan) {
         BlockFields.lastChildId: nc.paragraphId.value,
         BlockFields.inlineContent: null,
       });
-      
+
       doc.setBlockMap(nc.paragraphId.value, {
         BlockFields.type: 'paragraph',
         BlockFields.attrs: <String, dynamic>{},
@@ -169,7 +169,7 @@ void splitCellInTx(TwDoc doc, SplitCellPlan plan) {
 
     final first = seq.first.cellId;
     final last = seq.last.cellId;
-    
+
     if (row.prevCellId != null) {
       final yPrev = doc.getBlockMap(row.prevCellId!.value);
       if (yPrev != null) {
@@ -177,7 +177,7 @@ void splitCellInTx(TwDoc doc, SplitCellPlan plan) {
         doc.markDirty(row.prevCellId!.value);
       }
     }
-    
+
     if (row.nextCellId != null) {
       final yNext = doc.getBlockMap(row.nextCellId!.value);
       if (yNext != null) {
@@ -185,7 +185,7 @@ void splitCellInTx(TwDoc doc, SplitCellPlan plan) {
         doc.markDirty(row.nextCellId!.value);
       }
     }
-    
+
     if (row.prevCellId == null || row.nextCellId == null) {
       final yRow = doc.getBlockMap(row.rowId.value);
       if (yRow != null) {

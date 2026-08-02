@@ -47,7 +47,8 @@ ReadonlyAttrs? headerRowAttrsAfterRowEdit(
 int readHeaderRowCount(ReadonlyAttrs attrs) {
   final v = attrs['headerRowCount'];
   if (v is int && v > 0) return v;
-  if (v is double && v.isFinite && v.truncateToDouble() == v && v > 0) return v.toInt();
+  if (v is double && v.isFinite && v.truncateToDouble() == v && v > 0)
+    return v.toInt();
   return 0;
 }
 

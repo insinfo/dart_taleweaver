@@ -47,7 +47,8 @@ List<OutlineEntry> getOutline(State state, [OutlineOptions? options]) {
         ? ''
         : extractText(
             state,
-            createSpan(createPosition(blockId, 0), createPosition(blockId, length)),
+            createSpan(
+                createPosition(blockId, 0), createPosition(blockId, length)),
             captionEmbedSerializer,
             view,
           );
@@ -93,7 +94,8 @@ OutlineSignature computeOutlineSignature(
   State state,
   SuggestionView suggestionView,
 ) {
-  final entries = getOutline(state, OutlineOptions(suggestionView: suggestionView));
+  final entries =
+      getOutline(state, OutlineOptions(suggestionView: suggestionView));
   final signature = entries
       .map((e) => OutlineSigEntry(
             blockId: e.blockId,

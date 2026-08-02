@@ -44,27 +44,27 @@ class LayoutBoxMetadata {
   final String? blockType;
   final int? headingLevel;
   final ListMetadata? list;
-  
+
   final dynamic pageInlineSize;
   final dynamic pageBlockSize;
   final dynamic pageMargins;
   final dynamic pageGap;
   final dynamic headerBlockId;
   final dynamic footerBlockId;
-  
+
   final dynamic columnCount;
   final dynamic columnGap;
   final dynamic columnRule;
-  
+
   final String? embedType;
   final dynamic contentBlockId;
-  
+
   final String? fieldKind;
   final String? numberStyle;
-  
+
   final String? refMode; // e.g. "page"
   final String? targetId;
-  
+
   final bool? replacedInline;
 
   const LayoutBoxMetadata({
@@ -80,27 +80,21 @@ class LayoutBoxMetadata {
     this.blockType,
     this.headingLevel,
     this.list,
-    
     this.pageInlineSize,
     this.pageBlockSize,
     this.pageMargins,
     this.pageGap,
     this.headerBlockId,
     this.footerBlockId,
-    
     this.columnCount,
     this.columnGap,
     this.columnRule,
-    
     this.embedType,
     this.contentBlockId,
-    
     this.fieldKind,
     this.numberStyle,
-    
     this.refMode,
     this.targetId,
-    
     this.replacedInline,
   });
 }

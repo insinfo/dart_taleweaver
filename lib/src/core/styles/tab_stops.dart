@@ -13,22 +13,33 @@ enum TabAlignment {
 
   String get value {
     switch (this) {
-      case TabAlignment.left: return 'left';
-      case TabAlignment.center: return 'center';
-      case TabAlignment.right: return 'right';
-      case TabAlignment.decimal: return 'decimal';
-      case TabAlignment.contentEdge: return 'content-edge';
+      case TabAlignment.left:
+        return 'left';
+      case TabAlignment.center:
+        return 'center';
+      case TabAlignment.right:
+        return 'right';
+      case TabAlignment.decimal:
+        return 'decimal';
+      case TabAlignment.contentEdge:
+        return 'content-edge';
     }
   }
 
   static TabAlignment fromString(String val) {
     switch (val) {
-      case 'left': return TabAlignment.left;
-      case 'center': return TabAlignment.center;
-      case 'right': return TabAlignment.right;
-      case 'decimal': return TabAlignment.decimal;
-      case 'content-edge': return TabAlignment.contentEdge;
-      default: throw ArgumentError('Unhandled TabAlignment: $val');
+      case 'left':
+        return TabAlignment.left;
+      case 'center':
+        return TabAlignment.center;
+      case 'right':
+        return TabAlignment.right;
+      case 'decimal':
+        return TabAlignment.decimal;
+      case 'content-edge':
+        return TabAlignment.contentEdge;
+      default:
+        throw ArgumentError('Unhandled TabAlignment: $val');
     }
   }
 }
@@ -42,20 +53,29 @@ enum LeaderStyle {
 
   String get value {
     switch (this) {
-      case LeaderStyle.none: return 'none';
-      case LeaderStyle.dot: return 'dot';
-      case LeaderStyle.dash: return 'dash';
-      case LeaderStyle.line: return 'line';
+      case LeaderStyle.none:
+        return 'none';
+      case LeaderStyle.dot:
+        return 'dot';
+      case LeaderStyle.dash:
+        return 'dash';
+      case LeaderStyle.line:
+        return 'line';
     }
   }
 
   static LeaderStyle fromString(String val) {
     switch (val) {
-      case 'none': return LeaderStyle.none;
-      case 'dot': return LeaderStyle.dot;
-      case 'dash': return LeaderStyle.dash;
-      case 'line': return LeaderStyle.line;
-      default: throw ArgumentError('Unhandled LeaderStyle: $val');
+      case 'none':
+        return LeaderStyle.none;
+      case 'dot':
+        return LeaderStyle.dot;
+      case 'dash':
+        return LeaderStyle.dash;
+      case 'line':
+        return LeaderStyle.line;
+      default:
+        throw ArgumentError('Unhandled LeaderStyle: $val');
     }
   }
 }
@@ -73,14 +93,14 @@ class TabStop {
   });
 
   Map<String, dynamic> toJson() => {
-    'position': position,
-    'alignment': alignment.value,
-    'leader': leader.value,
-  };
+        'position': position,
+        'alignment': alignment.value,
+        'leader': leader.value,
+      };
 
   factory TabStop.fromJson(Map<String, dynamic> json) => TabStop(
-    position: (json['position'] as num).toDouble(),
-    alignment: TabAlignment.fromString(json['alignment'] as String),
-    leader: LeaderStyle.fromString(json['leader'] as String),
-  );
+        position: (json['position'] as num).toDouble(),
+        alignment: TabAlignment.fromString(json['alignment'] as String),
+        leader: LeaderStyle.fromString(json['leader'] as String),
+      );
 }

@@ -15,7 +15,6 @@ ComputedStyle flattenLengths(ComputedStyle cs) {
     display: cs.display,
     writingMode: cs.writingMode,
     direction: cs.direction,
-    
     inlineSize: _flattenSizingValue(cs.inlineSize, fontSize),
     blockSize: _flattenSizingValue(cs.blockSize, fontSize),
     minInlineSize: _flattenSizingOrIntrinsic(cs.minInlineSize, fontSize),
@@ -23,17 +22,14 @@ ComputedStyle flattenLengths(ComputedStyle cs) {
     maxInlineSize: _flattenSizingOrNone(cs.maxInlineSize, fontSize),
     maxBlockSize: _flattenSizingOrNone(cs.maxBlockSize, fontSize),
     boxSizing: cs.boxSizing,
-
     marginBlockStart: _flattenLengthOrAuto(cs.marginBlockStart, fontSize),
     marginBlockEnd: _flattenLengthOrAuto(cs.marginBlockEnd, fontSize),
     marginInlineStart: _flattenLengthOrAuto(cs.marginInlineStart, fontSize),
     marginInlineEnd: _flattenLengthOrAuto(cs.marginInlineEnd, fontSize),
-
     paddingBlockStart: _flattenLength(cs.paddingBlockStart, fontSize),
     paddingBlockEnd: _flattenLength(cs.paddingBlockEnd, fontSize),
     paddingInlineStart: _flattenLength(cs.paddingInlineStart, fontSize),
     paddingInlineEnd: _flattenLength(cs.paddingInlineEnd, fontSize),
-
     borderBlockStartWidth: cs.borderBlockStartWidth,
     borderBlockEndWidth: cs.borderBlockEndWidth,
     borderInlineStartWidth: cs.borderInlineStartWidth,
@@ -46,9 +42,7 @@ ComputedStyle flattenLengths(ComputedStyle cs) {
     borderBlockEndColor: cs.borderBlockEndColor,
     borderInlineStartColor: cs.borderInlineStartColor,
     borderInlineEndColor: cs.borderInlineEndColor,
-    
     backgroundColor: cs.backgroundColor,
-    
     fontFamily: cs.fontFamily,
     fontSize: fontSize,
     fontWeight: cs.fontWeight,
@@ -57,10 +51,8 @@ ComputedStyle flattenLengths(ComputedStyle cs) {
     lineThrough: cs.lineThrough,
     lineHeight: _flattenLineHeight(cs.lineHeight, fontSize),
     color: cs.color,
-    
     whiteSpace: cs.whiteSpace,
     verticalAlign: cs.verticalAlign,
-    
     textAlign: cs.textAlign,
     textIndent: _flattenLength(cs.textIndent, fontSize),
     textWrap: cs.textWrap,
@@ -74,22 +66,16 @@ ComputedStyle flattenLengths(ComputedStyle cs) {
     fontFeatureSettings: cs.fontFeatureSettings,
     tabStops: cs.tabStops,
     defaultTabStop: cs.defaultTabStop,
-    
     float: cs.float,
     clear: cs.clear,
-    
     breakBefore: cs.breakBefore,
     breakAfter: cs.breakAfter,
     breakInside: cs.breakInside,
-    
     widows: cs.widows,
     orphans: cs.orphans,
-    
     listStyleType: cs.listStyleType,
     listStylePosition: cs.listStylePosition,
-    
     markerText: cs.markerText,
-    
     position: cs.position,
     insetBlockStart: _flattenLengthOrAuto(cs.insetBlockStart, fontSize),
     insetBlockEnd: _flattenLengthOrAuto(cs.insetBlockEnd, fontSize),
@@ -113,7 +99,8 @@ ComputedLength _flattenLength(dynamic v, double fontSize) {
 }
 
 dynamic _flattenLengthOrAuto(dynamic v, double fontSize) {
-  if (v == 'auto' || v is AutoLength || v is ComputedAutoLength) return const ComputedLengthOrAuto.auto();
+  if (v == 'auto' || v is AutoLength || v is ComputedAutoLength)
+    return const ComputedLengthOrAuto.auto();
   if (v is ComputedLengthOrAuto) {
     if (v is ComputedLengthValue) return v;
     return const ComputedLengthOrAuto.auto();

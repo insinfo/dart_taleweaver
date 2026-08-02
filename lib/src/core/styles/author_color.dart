@@ -22,7 +22,7 @@ Color authorColorOf(String author) {
   for (var i = 0; i < author.length; i++) {
     hash = (((hash << 5) + hash) + author.codeUnitAt(i)) & 0xFFFFFFFF;
   }
-  
+
   final index = hash % _authorColorPalette.length;
   return _authorColorPalette[index];
 }

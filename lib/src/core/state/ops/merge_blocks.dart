@@ -57,7 +57,8 @@ void mergeAdjacentBlocksInTx(
   if (leftMap == null || rightMap == null) return;
 
   final leftItems = (leftMap[BlockFields.inlineContent] as InlineContent).items;
-  final rightItems = (rightMap[BlockFields.inlineContent] as InlineContent).items;
+  final rightItems =
+      (rightMap[BlockFields.inlineContent] as InlineContent).items;
 
   final merged = mergeAdjacentTextItems(
     [...leftItems, ...rightItems],
@@ -95,7 +96,8 @@ MergeBlocksPlan planMergeAdjacentBlocks(
   BlockId rightId,
 ) {
   if (leftId == rightId) {
-    throw StateError('mergeAdjacentBlocks: left and right are the same block "$leftId"');
+    throw StateError(
+        'mergeAdjacentBlocks: left and right are the same block "$leftId"');
   }
 
   final leftResolved = resolveBlock(state, leftId);
@@ -111,10 +113,12 @@ MergeBlocksPlan planMergeAdjacentBlocks(
   }
 
   if (left.inlineContent == null || left.firstChildId != null) {
-    throw StateError('mergeAdjacentBlocks: left block "$leftId" is a container, not a leaf');
+    throw StateError(
+        'mergeAdjacentBlocks: left block "$leftId" is a container, not a leaf');
   }
   if (right.inlineContent == null || right.firstChildId != null) {
-    throw StateError('mergeAdjacentBlocks: right block "$rightId" is a container, not a leaf');
+    throw StateError(
+        'mergeAdjacentBlocks: right block "$rightId" is a container, not a leaf');
   }
 
   if (left.parentId != right.parentId) {

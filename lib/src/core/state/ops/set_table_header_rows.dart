@@ -42,7 +42,8 @@ SetTableHeaderRowsPlan planSetTableHeaderRows(
   if (resolved == null) {
     throw StateError('setTableHeaderRows: block "$tableId" not found');
   }
-  if (resolved.kind != ResolvedBlockKind.main || resolved.block.type != 'table') {
+  if (resolved.kind != ResolvedBlockKind.main ||
+      resolved.block.type != 'table') {
     throw StateError('setTableHeaderRows: block "$tableId" is not a table');
   }
   final table = resolved.block;

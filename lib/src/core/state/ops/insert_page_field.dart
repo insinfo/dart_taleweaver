@@ -47,7 +47,8 @@ _PageFieldInsertPlan _planPageFieldInsert(
   final block = resolved.block;
   final kind = resolved.kind;
   if (block.inlineContent == null) {
-    throw StateError('insertPageField: block "${position.blockId}" is not a leaf');
+    throw StateError(
+        'insertPageField: block "${position.blockId}" is not a leaf');
   }
 
   final totalLen = inlineContentLength(block.inlineContent!);
@@ -61,7 +62,8 @@ _PageFieldInsertPlan _planPageFieldInsert(
     properties: {'fieldKind': fieldKind, 'numberStyle': numberStyle},
   );
 
-  final split = splitInlineContentAtOffset(block.inlineContent!, position.offset);
+  final split =
+      splitInlineContentAtOffset(block.inlineContent!, position.offset);
   final left = split.$1;
   final right = split.$2;
 

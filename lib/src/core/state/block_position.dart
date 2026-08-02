@@ -23,9 +23,7 @@ class Position {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Position &&
-          other.blockId == blockId &&
-          other.offset == offset);
+      (other is Position && other.blockId == blockId && other.offset == offset);
 
   @override
   int get hashCode => Object.hash(blockId, offset);

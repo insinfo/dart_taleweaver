@@ -82,9 +82,7 @@ ElementBox _buildPageAtom(BlockId tocId, int i, BlockId headingId) {
   return createElementBox(
     atomKey,
     const Style(display: Display.inlineBlock),
-    [
-      createTextBox('$atomKey/0', {}, '0' * pageFieldReservedGlyphs)
-    ],
+    [createTextBox('$atomKey/0', {}, '0' * pageFieldReservedGlyphs)],
     LayoutBoxMetadata(
       embedType: crossReferenceEmbedType,
       refMode: 'page',

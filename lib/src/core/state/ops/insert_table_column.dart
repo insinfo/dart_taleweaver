@@ -63,15 +63,18 @@ InsertTableColumnPlan planInsertTableColumn(
   ColumnPosition position,
   IdAllocator allocator,
 ) {
-  final targetCol = position == ColumnPosition.left ? ctx.colIndex : ctx.colIndex + 1;
+  final targetCol =
+      position == ColumnPosition.left ? ctx.colIndex : ctx.colIndex + 1;
 
   final rows = <_InsertTableColumnRow>[];
   for (int r = 0; r < ctx.rowIds.length; r++) {
     final rowId = ctx.rowIds[r];
     final cells = ctx.cellIdsByRow[r];
-    final prevCellId = targetCol == 0 ? null : (targetCol - 1 < cells.length ? cells[targetCol - 1] : null);
+    final prevCellId = targetCol == 0
+        ? null
+        : (targetCol - 1 < cells.length ? cells[targetCol - 1] : null);
     final nextCellId = targetCol < cells.length ? cells[targetCol] : null;
-    
+
     rows.add(_InsertTableColumnRow(
       rowId: rowId,
       cellId: allocator.allocate(),
@@ -84,10 +87,11 @@ InsertTableColumnPlan planInsertTableColumn(
   final table = getBlock(state, ctx.tableId);
   final cw = table?.attrs['columnWidths'];
   ReadonlyAttrs? newTableAttrs;
-  
+
   if (table != null && isColumnWidths(cw)) {
     newTableAttrs = Map<String, dynamic>.of(table.attrs);
-    newTableAttrs['columnWidths'] = spliceColumnWidth(parseColumnWidths(cw), targetCol);
+    newTableAttrs['columnWidths'] =
+        spliceColumnWidth(parseColumnWidths(cw), targetCol);
   }
 
   return InsertTableColumnPlan(
@@ -109,7 +113,7 @@ void insertTableColumnInTx(TwDoc doc, InsertTableColumnPlan plan) {
       BlockFields.firstChildId: r.paragraphId.value,
       BlockFields.lastChildId: r.paragraphId.value,
     });
-    
+
     doc.setBlockMap(r.paragraphId.value, {
       BlockFields.type: 'paragraph',
       BlockFields.attrs: <String, dynamic>{},
@@ -118,19 +122,23 @@ void insertTableColumnInTx(TwDoc doc, InsertTableColumnPlan plan) {
     });
 
     if (r.prevCellId != null) {
-      doc.getBlockMap(r.prevCellId!.value)?[BlockFields.nextSiblingId] = r.cellId.value;
+      doc.getBlockMap(r.prevCellId!.value)?[BlockFields.nextSiblingId] =
+          r.cellId.value;
       doc.markDirty(r.prevCellId!.value);
     }
     if (r.nextCellId != null) {
-      doc.getBlockMap(r.nextCellId!.value)?[BlockFields.prevSiblingId] = r.cellId.value;
+      doc.getBlockMap(r.nextCellId!.value)?[BlockFields.prevSiblingId] =
+          r.cellId.value;
       doc.markDirty(r.nextCellId!.value);
     }
-    
+
     if (r.prevCellId == null || r.nextCellId == null) {
       final yRow = doc.getBlockMap(r.rowId.value);
       if (yRow != null) {
-        if (r.prevCellId == null) yRow[BlockFields.firstChildId] = r.cellId.value;
-        if (r.nextCellId == null) yRow[BlockFields.lastChildId] = r.cellId.value;
+        if (r.prevCellId == null)
+          yRow[BlockFields.firstChildId] = r.cellId.value;
+        if (r.nextCellId == null)
+          yRow[BlockFields.lastChildId] = r.cellId.value;
         doc.markDirty(r.rowId.value);
       }
     }

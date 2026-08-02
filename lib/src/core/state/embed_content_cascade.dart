@@ -31,7 +31,8 @@ void collectEmbedContentSubtree(State state, BlockId rootId, Set<BlockId> out) {
 
   // Nested embed-content references.
   if (block.inlineContent != null) {
-    collectEmbedContentSubtreeFromInlineContent(state, block.inlineContent!, out);
+    collectEmbedContentSubtreeFromInlineContent(
+        state, block.inlineContent!, out);
   }
 }
 
@@ -69,21 +70,24 @@ void assertNoOrphanedEmbedContent(
       final main = getBlock(state, id);
       if (main != null) {
         if (main.inlineContent != null) {
-          _assertNoOrphansInInlineContent(state, id, main.inlineContent!, opName);
+          _assertNoOrphansInInlineContent(
+              state, id, main.inlineContent!, opName);
         }
         continue;
       }
       final embed = getEmbedContent(state, id);
       if (embed != null) {
         if (embed.inlineContent != null) {
-          _assertNoOrphansInInlineContent(state, id, embed.inlineContent!, opName);
+          _assertNoOrphansInInlineContent(
+              state, id, embed.inlineContent!, opName);
         }
         continue;
       }
       final template = getTemplateContent(state, id);
       if (template != null) {
         if (template.inlineContent != null) {
-          _assertNoOrphansInInlineContent(state, id, template.inlineContent!, opName);
+          _assertNoOrphansInInlineContent(
+              state, id, template.inlineContent!, opName);
         }
         continue;
       }
@@ -95,9 +99,12 @@ void assertNoOrphanedEmbedContent(
 }
 
 void _fullScanForOrphans(State state, String opName) {
-  _iterateMapForOrphans(state, state.doc.blocks.keys, (id) => getBlock(state, id), opName);
-  _iterateMapForOrphans(state, state.doc.embedContents.keys, (id) => getEmbedContent(state, id), opName);
-  _iterateMapForOrphans(state, state.doc.templateContents.keys, (id) => getTemplateContent(state, id), opName);
+  _iterateMapForOrphans(
+      state, state.doc.blocks.keys, (id) => getBlock(state, id), opName);
+  _iterateMapForOrphans(state, state.doc.embedContents.keys,
+      (id) => getEmbedContent(state, id), opName);
+  _iterateMapForOrphans(state, state.doc.templateContents.keys,
+      (id) => getTemplateContent(state, id), opName);
 }
 
 void _iterateMapForOrphans(
@@ -151,7 +158,9 @@ void assertNoSharedEmbedContent(
 
 bool _anyDirtyBlockHasEmbedRef(State state, Set<BlockId> dirtyIds) {
   for (final id in dirtyIds) {
-    final block = getBlock(state, id) ?? getEmbedContent(state, id) ?? getTemplateContent(state, id);
+    final block = getBlock(state, id) ??
+        getEmbedContent(state, id) ??
+        getTemplateContent(state, id);
     if (block?.inlineContent != null) {
       for (final item in block!.inlineContent!.items) {
         if (item is EmbedItem && item.properties['contentBlockId'] is String) {
@@ -165,9 +174,12 @@ bool _anyDirtyBlockHasEmbedRef(State state, Set<BlockId> dirtyIds) {
 
 void _fullScanForSharing(State state, String opName) {
   final seenRefs = <BlockId, BlockId>{};
-  _iterateMapForSharing(state.doc.blocks.keys, (id) => getBlock(state, id), seenRefs, opName);
-  _iterateMapForSharing(state.doc.embedContents.keys, (id) => getEmbedContent(state, id), seenRefs, opName);
-  _iterateMapForSharing(state.doc.templateContents.keys, (id) => getTemplateContent(state, id), seenRefs, opName);
+  _iterateMapForSharing(
+      state.doc.blocks.keys, (id) => getBlock(state, id), seenRefs, opName);
+  _iterateMapForSharing(state.doc.embedContents.keys,
+      (id) => getEmbedContent(state, id), seenRefs, opName);
+  _iterateMapForSharing(state.doc.templateContents.keys,
+      (id) => getTemplateContent(state, id), seenRefs, opName);
 }
 
 void _iterateMapForSharing(

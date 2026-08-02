@@ -8,7 +8,7 @@ import '../../inline_content.dart';
 import '../../state.dart';
 import '../../suggestions.dart';
 
- // if needed later
+// if needed later
 
 class CoalesceDecision {
   final SuggestionId id;

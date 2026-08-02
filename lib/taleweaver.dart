@@ -61,6 +61,7 @@ export 'src/core/layout/text_spacing.dart';
 export 'src/core/layout/text_tokenize.dart';
 export 'src/core/layout/text_transform.dart';
 export 'src/core/layout/uax14/index.dart';
+export 'src/core/layout/uax9/index.dart';
 
 // ---------------------------------------------------------------------------
 // Geometry-free editor state

@@ -27,7 +27,10 @@ Length? _asLength(dynamic value) {
 }
 
 bool isTextAlign(dynamic value) {
-  return value == 'start' || value == 'end' || value == 'center' || value == 'justify';
+  return value == 'start' ||
+      value == 'end' ||
+      value == 'center' ||
+      value == 'justify';
 }
 
 AttrInterpreter _makeLengthOrNormalInterpreter(String attrKey) {
@@ -63,56 +66,59 @@ class BoldInterpreter extends AttrInterpreter {
   @override
   String get attrKey => 'bold';
   @override
-  Style toStyle(dynamic value, [CascadeContext? ctx]) => 
-    (value == true) ? const Style(fontWeight: FontWeight.bold) : const Style();
+  Style toStyle(dynamic value, [CascadeContext? ctx]) => (value == true)
+      ? const Style(fontWeight: FontWeight.bold)
+      : const Style();
 }
 
 class ItalicInterpreter extends AttrInterpreter {
   @override
   String get attrKey => 'italic';
   @override
-  Style toStyle(dynamic value, [CascadeContext? ctx]) => 
-    (value == true) ? const Style(fontStyle: FontStyle.italic) : const Style();
+  Style toStyle(dynamic value, [CascadeContext? ctx]) => (value == true)
+      ? const Style(fontStyle: FontStyle.italic)
+      : const Style();
 }
 
 class UnderlineInterpreter extends AttrInterpreter {
   @override
   String get attrKey => 'underline';
   @override
-  Style toStyle(dynamic value, [CascadeContext? ctx]) => 
-    (value == true) ? const Style(underline: true) : const Style();
+  Style toStyle(dynamic value, [CascadeContext? ctx]) =>
+      (value == true) ? const Style(underline: true) : const Style();
 }
 
 class StrikethroughInterpreter extends AttrInterpreter {
   @override
   String get attrKey => 'strikethrough';
   @override
-  Style toStyle(dynamic value, [CascadeContext? ctx]) => 
-    (value == true) ? const Style(lineThrough: true) : const Style();
+  Style toStyle(dynamic value, [CascadeContext? ctx]) =>
+      (value == true) ? const Style(lineThrough: true) : const Style();
 }
 
 class LinkInterpreter extends AttrInterpreter {
   @override
   String get attrKey => 'link';
   @override
-  Style toStyle(dynamic value, [CascadeContext? ctx]) => 
-    (value is String) ? const Style(color: '#1a73e8', underline: true) : const Style();
+  Style toStyle(dynamic value, [CascadeContext? ctx]) => (value is String)
+      ? const Style(color: '#1a73e8', underline: true)
+      : const Style();
 }
 
 class FontFamilyInterpreter extends AttrInterpreter {
   @override
   String get attrKey => 'fontFamily';
   @override
-  Style toStyle(dynamic value, [CascadeContext? ctx]) => 
-    (value is String) ? Style(fontFamily: value) : const Style();
+  Style toStyle(dynamic value, [CascadeContext? ctx]) =>
+      (value is String) ? Style(fontFamily: value) : const Style();
 }
 
 class LangInterpreter extends AttrInterpreter {
   @override
   String get attrKey => 'lang';
   @override
-  Style toStyle(dynamic value, [CascadeContext? ctx]) => 
-    (value is String) ? Style(language: value) : const Style();
+  Style toStyle(dynamic value, [CascadeContext? ctx]) =>
+      (value is String) ? Style(language: value) : const Style();
 }
 
 class HyphensInterpreter extends AttrInterpreter {
@@ -143,16 +149,16 @@ class ColorInterpreter extends AttrInterpreter {
   @override
   String get attrKey => 'color';
   @override
-  Style toStyle(dynamic value, [CascadeContext? ctx]) => 
-    (value is String) ? Style(color: value) : const Style();
+  Style toStyle(dynamic value, [CascadeContext? ctx]) =>
+      (value is String) ? Style(color: value) : const Style();
 }
 
 class BackgroundColorInterpreter extends AttrInterpreter {
   @override
   String get attrKey => 'backgroundColor';
   @override
-  Style toStyle(dynamic value, [CascadeContext? ctx]) => 
-    (value is String) ? Style(backgroundColor: value) : const Style();
+  Style toStyle(dynamic value, [CascadeContext? ctx]) =>
+      (value is String) ? Style(backgroundColor: value) : const Style();
 }
 
 class TextAlignInterpreter extends AttrInterpreter {
@@ -176,9 +182,12 @@ class TextTransformInterpreter extends AttrInterpreter {
   @override
   Style toStyle(dynamic value, [CascadeContext? ctx]) {
     if (value == 'none') return const Style(textTransform: TextTransform.none);
-    if (value == 'capitalize') return const Style(textTransform: TextTransform.capitalize);
-    if (value == 'uppercase') return const Style(textTransform: TextTransform.uppercase);
-    if (value == 'lowercase') return const Style(textTransform: TextTransform.lowercase);
+    if (value == 'capitalize')
+      return const Style(textTransform: TextTransform.capitalize);
+    if (value == 'uppercase')
+      return const Style(textTransform: TextTransform.uppercase);
+    if (value == 'lowercase')
+      return const Style(textTransform: TextTransform.lowercase);
     return const Style();
   }
 }
@@ -212,24 +221,34 @@ List<TabStop>? normalizeTabStops(dynamic value) {
   for (final raw in value) {
     if (raw is! Map) continue;
     final pos = raw['position'];
-    final position = (pos is num && !pos.isNaN && !pos.isInfinite) ? (pos > 0 ? pos.toDouble() : 0.0) : 0.0;
-    
+    final position = (pos is num && !pos.isNaN && !pos.isInfinite)
+        ? (pos > 0 ? pos.toDouble() : 0.0)
+        : 0.0;
+
     TabAlignment alignment = TabAlignment.left;
     final alignVal = raw['alignment'];
-    if (alignVal == 'left') alignment = TabAlignment.left;
-    else if (alignVal == 'center') alignment = TabAlignment.center;
-    else if (alignVal == 'right') alignment = TabAlignment.right;
-    else if (alignVal == 'decimal') alignment = TabAlignment.decimal;
+    if (alignVal == 'left')
+      alignment = TabAlignment.left;
+    else if (alignVal == 'center')
+      alignment = TabAlignment.center;
+    else if (alignVal == 'right')
+      alignment = TabAlignment.right;
+    else if (alignVal == 'decimal')
+      alignment = TabAlignment.decimal;
     else if (alignVal == 'content-edge') alignment = TabAlignment.contentEdge;
-    
+
     LeaderStyle leader = LeaderStyle.none;
     final leaderVal = raw['leader'];
-    if (leaderVal == 'none') leader = LeaderStyle.none;
-    else if (leaderVal == 'dot') leader = LeaderStyle.dot;
-    else if (leaderVal == 'dash') leader = LeaderStyle.dash;
+    if (leaderVal == 'none')
+      leader = LeaderStyle.none;
+    else if (leaderVal == 'dot')
+      leader = LeaderStyle.dot;
+    else if (leaderVal == 'dash')
+      leader = LeaderStyle.dash;
     else if (leaderVal == 'line') leader = LeaderStyle.line;
 
-    stops.add(TabStop(position: position, alignment: alignment, leader: leader));
+    stops
+        .add(TabStop(position: position, alignment: alignment, leader: leader));
   }
   stops.sort((a, b) => a.position.compareTo(b.position));
   return stops;
@@ -258,14 +277,14 @@ void registerBuiltinAttrs(AttrRegistry registry) {
   registry.register(FontSizeInterpreter());
   registry.register(ColorInterpreter());
   registry.register(BackgroundColorInterpreter());
-  
+
   registry.register(TextAlignInterpreter());
   registry.register(TextTransformInterpreter());
   registry.register(LineHeightInterpreter());
   registry.register(TextIndentInterpreter());
-  
+
   registry.register(_makeLengthOrNormalInterpreter('letterSpacing'));
   registry.register(_makeLengthOrNormalInterpreter('wordSpacing'));
-  
+
   registry.register(TabStopsInterpreter());
 }

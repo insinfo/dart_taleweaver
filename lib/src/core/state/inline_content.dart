@@ -114,7 +114,8 @@ class ItemAtOffset {
 ItemAtOffset findItemAtOffset(InlineContent content, int offset) {
   final total = inlineContentLength(content);
   if (offset < 0 || offset > total) {
-    throw RangeError('findItemAtOffset: offset $offset out of range [0, $total]');
+    throw RangeError(
+        'findItemAtOffset: offset $offset out of range [0, $total]');
   }
 
   var cursor = 0;

@@ -48,11 +48,11 @@ OperationResult addComment(
   if (state.doc.comments.containsKey(input.id.value)) {
     return OperationResult(state: state, dirtyIds: {});
   }
-  
+
   final start = spanStart(state, span);
   final end = spanEnd(state, span);
   final writes = planCommentMarkers(state, start, end, input.id);
-  
+
   final record = CommentRecord(
     id: input.id,
     author: input.author,
@@ -61,7 +61,7 @@ OperationResult addComment(
     replies: [],
     resolved: false,
   );
-  
+
   return applyOperation(state, (doc) {
     applyCommentMarkerWritesInTx(doc, writes);
     writeCommentRecordInTx(doc, record);
@@ -80,8 +80,9 @@ OperationResult _setResolved(State state, CommentId id, bool resolved) {
   final doc = state.doc;
   final yRecord = doc.comments[id.value];
   if (yRecord == null) return OperationResult(state: state, dirtyIds: {});
-  if (yRecord['resolved'] == resolved) return OperationResult(state: state, dirtyIds: {});
-  
+  if (yRecord['resolved'] == resolved)
+    return OperationResult(state: state, dirtyIds: {});
+
   return applyOperation(state, (d) {
     final rec = d.comments[id.value];
     if (rec != null) {
@@ -95,11 +96,11 @@ OperationResult deleteComment(State state, CommentId id) {
   final doc = state.doc;
   final hasRecord = doc.comments.containsKey(id.value);
   final writes = _planMarkerStrip(state, id);
-  
+
   if (!hasRecord && writes.isEmpty) {
     return OperationResult(state: state, dirtyIds: {});
   }
-  
+
   return applyOperation(state, (d) {
     for (final write in writes) {
       final yBlock = write.kind == ResolvedBlockKind.embed
@@ -112,9 +113,9 @@ OperationResult deleteComment(State state, CommentId id) {
         d.markDirty(write.blockId.value);
       }
     }
-    
+
     d.comments.remove(id.value);
-    
+
     if (writes.isEmpty) {
       d.markDirty(state.rootId.value);
     }
@@ -130,23 +131,23 @@ OperationResult addReply(
   if (!doc.comments.containsKey(id.value)) {
     return OperationResult(state: state, dirtyIds: {});
   }
-  
+
   final reply = CommentReply(
     id: input.replyId,
     author: input.author,
     body: input.body,
     createdAt: input.createdAt,
   );
-  
+
   return applyOperation(state, (d) {
     final yRecord = d.comments[id.value];
     if (yRecord == null) return;
-    
+
     final replies = yRecord['replies'] as List<dynamic>?;
     if (replies == null) return;
-    
+
     replies.add(reply.toJson());
-    
+
     d.markDirty(state.rootId.value);
   });
 }
@@ -165,14 +166,14 @@ class _StripWrite {
 
 List<_StripWrite> _planMarkerStrip(State state, CommentId id) {
   final writes = <_StripWrite>[];
-  
+
   for (final block in iterateBlocksInDocumentOrder(state)) {
     final content = block.inlineContent;
     if (content == null) continue;
-    
+
     final kept = <InlineItem>[];
     var removed = false;
-    
+
     for (final item in content.items) {
       if (_isCommentMarkerFor(item, id)) {
         removed = true;
@@ -180,26 +181,27 @@ List<_StripWrite> _planMarkerStrip(State state, CommentId id) {
       }
       kept.add(item);
     }
-    
+
     if (!removed) continue;
-    
+
     final resolved = resolveBlock(state, block.id);
     if (resolved == null) continue;
-    
+
     writes.add(_StripWrite(
       blockId: block.id,
       kind: resolved.kind,
       items: mergeAdjacentTextItems(kept),
     ));
   }
-  
+
   return writes;
 }
 
 bool _isCommentMarkerFor(InlineItem item, CommentId id) {
   if (item is EmbedItem) {
-    return (item.embedType == commentStartEmbedType || item.embedType == commentEndEmbedType) &&
-           item.properties['commentId'] == id.value;
+    return (item.embedType == commentStartEmbedType ||
+            item.embedType == commentEndEmbedType) &&
+        item.properties['commentId'] == id.value;
   }
   return false;
 }

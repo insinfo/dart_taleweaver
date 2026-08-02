@@ -13,7 +13,9 @@ class SuggestionId {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is SuggestionId && runtimeType == other.runtimeType && value == other.value;
+      other is SuggestionId &&
+          runtimeType == other.runtimeType &&
+          value == other.value;
 
   @override
   int get hashCode => value.hashCode;
@@ -58,7 +60,7 @@ bool itemVisibleInView(InlineItem item, SuggestionView view) {
 bool blockBoundaryMergesInView(List<InlineItem> items, SuggestionView view) {
   if (view == SuggestionView.suggesting) return false;
   if (items.isEmpty) return false;
-  
+
   final last = items.last;
   if (last is EmbedItem) {
     if (last.embedType == blockJoinSuggestionEmbedType ||
@@ -123,7 +125,6 @@ SuggestionRecord? readSuggestionRecord(TwDoc doc, SuggestionId id) {
   );
 }
 
-
 List<SuggestionRecord> getSuggestions(State state) {
   final List<SuggestionRecord> out = [];
   for (final entry in state.doc.suggestions.entries) {
@@ -132,7 +133,9 @@ List<SuggestionRecord> getSuggestions(State state) {
       kind: entry.value['kind'],
       author: entry.value['author'],
       createdAt: entry.value['createdAt'],
-      proposedAttrs: entry.value['proposedAttrs'] != null ? Map<String, dynamic>.from(entry.value['proposedAttrs']) : null,
+      proposedAttrs: entry.value['proposedAttrs'] != null
+          ? Map<String, dynamic>.from(entry.value['proposedAttrs'])
+          : null,
     ));
   }
   return out;

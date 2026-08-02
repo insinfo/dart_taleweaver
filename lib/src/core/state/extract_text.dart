@@ -67,7 +67,8 @@ String extractText(
 
     final items = block.inlineContent?.items ?? const [];
     if (block.inlineContent != null) {
-      parts.add(_extractTextFromBlock(items, rangeStart, rangeEnd, embedSerializer, view));
+      parts.add(_extractTextFromBlock(
+          items, rangeStart, rangeEnd, embedSerializer, view));
     }
     prevItems = items;
   }
@@ -88,18 +89,18 @@ String _extractTextFromBlock(
 
   for (final item in items) {
     if (cursor >= rangeEnd) break;
-    
+
     final itemLen = item is TextItem ? item.text.length : 1;
     final itemStart = cursor;
     final itemEnd = cursor + itemLen;
     cursor = itemEnd;
-    
+
     if (itemEnd <= rangeStart) continue;
     if (!itemVisibleInView(item, view)) continue;
-    
+
     final subStart = max(itemStart, rangeStart) - itemStart;
     final subEnd = min(itemEnd, rangeEnd) - itemStart;
-    
+
     if (item is TextItem) {
       out.add(item.text.substring(subStart, subEnd));
     } else if (item is EmbedItem) {
@@ -108,6 +109,6 @@ String _extractTextFromBlock(
       }
     }
   }
-  
+
   return out.join('');
 }

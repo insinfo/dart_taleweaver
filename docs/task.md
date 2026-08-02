@@ -122,6 +122,7 @@
 - `[ ]` UAX #14 completo e tabelas Unicode
 - `[ ]` UAX #9 bidi completo e tabelas Unicode
 - `[ ]` Intrinsic sizes, hyphenation e shaping Canvas
+- `[x]` UAX #9 baseline: classes, paragraph direction, níveis básicos, reorder L2 e mirrors básicos
 
 ## Fase 8 — Editor state machine
 - `[x]` EditorState, EditorAction e reducer geometry-free básicos

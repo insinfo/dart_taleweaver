@@ -10,61 +10,101 @@ import 'tab_stops.dart';
 import 'writing_mode.dart';
 
 enum Display {
-  block, inline, inlineBlock, listItem,
-  table, tableRow, tableCell, flowRoot, none,
+  block,
+  inline,
+  inlineBlock,
+  listItem,
+  table,
+  tableRow,
+  tableCell,
+  flowRoot,
+  none,
   contents;
 
   String get value {
     switch (this) {
-      case Display.block: return 'block';
-      case Display.inline: return 'inline';
-      case Display.inlineBlock: return 'inline-block';
-      case Display.listItem: return 'list-item';
-      case Display.table: return 'table';
-      case Display.tableRow: return 'table-row';
-      case Display.tableCell: return 'table-cell';
-      case Display.flowRoot: return 'flow-root';
-      case Display.none: return 'none';
-      case Display.contents: return 'contents';
+      case Display.block:
+        return 'block';
+      case Display.inline:
+        return 'inline';
+      case Display.inlineBlock:
+        return 'inline-block';
+      case Display.listItem:
+        return 'list-item';
+      case Display.table:
+        return 'table';
+      case Display.tableRow:
+        return 'table-row';
+      case Display.tableCell:
+        return 'table-cell';
+      case Display.flowRoot:
+        return 'flow-root';
+      case Display.none:
+        return 'none';
+      case Display.contents:
+        return 'contents';
     }
   }
 
   static Display fromString(String val) {
     switch (val) {
-      case 'block': return Display.block;
-      case 'inline': return Display.inline;
-      case 'inline-block': return Display.inlineBlock;
-      case 'list-item': return Display.listItem;
-      case 'table': return Display.table;
-      case 'table-row': return Display.tableRow;
-      case 'table-cell': return Display.tableCell;
-      case 'flow-root': return Display.flowRoot;
-      case 'none': return Display.none;
-      case 'contents': return Display.contents;
-      default: throw ArgumentError('Unhandled Display: $val');
+      case 'block':
+        return Display.block;
+      case 'inline':
+        return Display.inline;
+      case 'inline-block':
+        return Display.inlineBlock;
+      case 'list-item':
+        return Display.listItem;
+      case 'table':
+        return Display.table;
+      case 'table-row':
+        return Display.tableRow;
+      case 'table-cell':
+        return Display.tableCell;
+      case 'flow-root':
+        return Display.flowRoot;
+      case 'none':
+        return Display.none;
+      case 'contents':
+        return Display.contents;
+      default:
+        throw ArgumentError('Unhandled Display: $val');
     }
   }
 }
 
 enum BorderStyle {
-  none, solid, dashed, dotted;
+  none,
+  solid,
+  dashed,
+  dotted;
 
   String get value {
     switch (this) {
-      case BorderStyle.none: return 'none';
-      case BorderStyle.solid: return 'solid';
-      case BorderStyle.dashed: return 'dashed';
-      case BorderStyle.dotted: return 'dotted';
+      case BorderStyle.none:
+        return 'none';
+      case BorderStyle.solid:
+        return 'solid';
+      case BorderStyle.dashed:
+        return 'dashed';
+      case BorderStyle.dotted:
+        return 'dotted';
     }
   }
 
   static BorderStyle fromString(String val) {
     switch (val) {
-      case 'none': return BorderStyle.none;
-      case 'solid': return BorderStyle.solid;
-      case 'dashed': return BorderStyle.dashed;
-      case 'dotted': return BorderStyle.dotted;
-      default: throw ArgumentError('Unhandled BorderStyle: $val');
+      case 'none':
+        return BorderStyle.none;
+      case 'solid':
+        return BorderStyle.solid;
+      case 'dashed':
+        return BorderStyle.dashed;
+      case 'dotted':
+        return BorderStyle.dotted;
+      default:
+        throw ArgumentError('Unhandled BorderStyle: $val');
     }
   }
 }
@@ -79,7 +119,7 @@ class FontWeight {
   static const bold = FontWeight._('bold');
   static const lighter = FontWeight._('lighter');
   static const bolder = FontWeight._('bolder');
-  
+
   factory FontWeight.number(int val) => FontWeight._(val);
 
   dynamic get value => _val;
@@ -95,126 +135,195 @@ class FontWeight {
 }
 
 enum FontStyle {
-  normal, italic, oblique;
-  
+  normal,
+  italic,
+  oblique;
+
   String get value {
     switch (this) {
-      case FontStyle.normal: return 'normal';
-      case FontStyle.italic: return 'italic';
-      case FontStyle.oblique: return 'oblique';
+      case FontStyle.normal:
+        return 'normal';
+      case FontStyle.italic:
+        return 'italic';
+      case FontStyle.oblique:
+        return 'oblique';
     }
   }
 }
 
 enum WhiteSpace {
-  normal, nowrap, pre, preWrap, preLine, breakSpaces;
+  normal,
+  nowrap,
+  pre,
+  preWrap,
+  preLine,
+  breakSpaces;
 
   String get value {
     switch (this) {
-      case WhiteSpace.normal: return 'normal';
-      case WhiteSpace.nowrap: return 'nowrap';
-      case WhiteSpace.pre: return 'pre';
-      case WhiteSpace.preWrap: return 'pre-wrap';
-      case WhiteSpace.preLine: return 'pre-line';
-      case WhiteSpace.breakSpaces: return 'break-spaces';
+      case WhiteSpace.normal:
+        return 'normal';
+      case WhiteSpace.nowrap:
+        return 'nowrap';
+      case WhiteSpace.pre:
+        return 'pre';
+      case WhiteSpace.preWrap:
+        return 'pre-wrap';
+      case WhiteSpace.preLine:
+        return 'pre-line';
+      case WhiteSpace.breakSpaces:
+        return 'break-spaces';
     }
   }
 }
 
 enum VerticalAlign {
-  baseline, sub, superAlign, top, middle, bottom;
+  baseline,
+  sub,
+  superAlign,
+  top,
+  middle,
+  bottom;
 
   String get value {
     switch (this) {
-      case VerticalAlign.baseline: return 'baseline';
-      case VerticalAlign.sub: return 'sub';
-      case VerticalAlign.superAlign: return 'super';
-      case VerticalAlign.top: return 'top';
-      case VerticalAlign.middle: return 'middle';
-      case VerticalAlign.bottom: return 'bottom';
+      case VerticalAlign.baseline:
+        return 'baseline';
+      case VerticalAlign.sub:
+        return 'sub';
+      case VerticalAlign.superAlign:
+        return 'super';
+      case VerticalAlign.top:
+        return 'top';
+      case VerticalAlign.middle:
+        return 'middle';
+      case VerticalAlign.bottom:
+        return 'bottom';
     }
   }
 }
 
 enum TextAlign {
-  start, end, center, justify;
+  start,
+  end,
+  center,
+  justify;
 
   String get value {
     switch (this) {
-      case TextAlign.start: return 'start';
-      case TextAlign.end: return 'end';
-      case TextAlign.center: return 'center';
-      case TextAlign.justify: return 'justify';
+      case TextAlign.start:
+        return 'start';
+      case TextAlign.end:
+        return 'end';
+      case TextAlign.center:
+        return 'center';
+      case TextAlign.justify:
+        return 'justify';
     }
   }
 }
 
 enum TextTransform {
-  none, capitalize, uppercase, lowercase;
+  none,
+  capitalize,
+  uppercase,
+  lowercase;
 
   String get value {
     switch (this) {
-      case TextTransform.none: return 'none';
-      case TextTransform.capitalize: return 'capitalize';
-      case TextTransform.uppercase: return 'uppercase';
-      case TextTransform.lowercase: return 'lowercase';
+      case TextTransform.none:
+        return 'none';
+      case TextTransform.capitalize:
+        return 'capitalize';
+      case TextTransform.uppercase:
+        return 'uppercase';
+      case TextTransform.lowercase:
+        return 'lowercase';
     }
   }
 }
 
 enum Float {
-  none, inlineStart, inlineEnd;
+  none,
+  inlineStart,
+  inlineEnd;
 
   String get value {
     switch (this) {
-      case Float.none: return 'none';
-      case Float.inlineStart: return 'inline-start';
-      case Float.inlineEnd: return 'inline-end';
+      case Float.none:
+        return 'none';
+      case Float.inlineStart:
+        return 'inline-start';
+      case Float.inlineEnd:
+        return 'inline-end';
     }
   }
 }
 
 enum Clear {
-  none, inlineStart, inlineEnd, both;
+  none,
+  inlineStart,
+  inlineEnd,
+  both;
 
   String get value {
     switch (this) {
-      case Clear.none: return 'none';
-      case Clear.inlineStart: return 'inline-start';
-      case Clear.inlineEnd: return 'inline-end';
-      case Clear.both: return 'both';
+      case Clear.none:
+        return 'none';
+      case Clear.inlineStart:
+        return 'inline-start';
+      case Clear.inlineEnd:
+        return 'inline-end';
+      case Clear.both:
+        return 'both';
     }
   }
 }
 
 enum BreakBefore {
-  auto, page, avoid;
+  auto,
+  page,
+  avoid;
+
   String get value {
     switch (this) {
-      case BreakBefore.auto: return 'auto';
-      case BreakBefore.page: return 'page';
-      case BreakBefore.avoid: return 'avoid';
+      case BreakBefore.auto:
+        return 'auto';
+      case BreakBefore.page:
+        return 'page';
+      case BreakBefore.avoid:
+        return 'avoid';
     }
   }
 }
 
 enum BreakAfter {
-  auto, page, avoid;
+  auto,
+  page,
+  avoid;
+
   String get value {
     switch (this) {
-      case BreakAfter.auto: return 'auto';
-      case BreakAfter.page: return 'page';
-      case BreakAfter.avoid: return 'avoid';
+      case BreakAfter.auto:
+        return 'auto';
+      case BreakAfter.page:
+        return 'page';
+      case BreakAfter.avoid:
+        return 'avoid';
     }
   }
 }
 
 enum BreakInside {
-  auto, avoid;
+  auto,
+  avoid;
+
   String get value {
     switch (this) {
-      case BreakInside.auto: return 'auto';
-      case BreakInside.avoid: return 'avoid';
+      case BreakInside.auto:
+        return 'auto';
+      case BreakInside.avoid:
+        return 'avoid';
     }
   }
 }
@@ -232,63 +341,94 @@ class ListStyleType {
   static const lowerRoman = ListStyleType._('lower-roman');
   static const upperRoman = ListStyleType._('upper-roman');
   static const none = ListStyleType._('none');
-  
-  factory ListStyleType.content(String content) => ListStyleType._({'content': content});
-  
+
+  factory ListStyleType.content(String content) =>
+      ListStyleType._({'content': content});
+
   dynamic get value => _val;
 }
 
 enum ListStylePosition {
-  outside, inside;
+  outside,
+  inside;
+
   String get value {
     switch (this) {
-      case ListStylePosition.outside: return 'outside';
-      case ListStylePosition.inside: return 'inside';
+      case ListStylePosition.outside:
+        return 'outside';
+      case ListStylePosition.inside:
+        return 'inside';
     }
   }
 }
 
 enum BoxSizing {
-  contentBox, borderBox;
+  contentBox,
+  borderBox;
+
   String get value {
     switch (this) {
-      case BoxSizing.contentBox: return 'content-box';
-      case BoxSizing.borderBox: return 'border-box';
+      case BoxSizing.contentBox:
+        return 'content-box';
+      case BoxSizing.borderBox:
+        return 'border-box';
     }
   }
 }
 
 enum TextWrap {
-  wrap, nowrap, balance, pretty, stable;
+  wrap,
+  nowrap,
+  balance,
+  pretty,
+  stable;
+
   String get value {
     switch (this) {
-      case TextWrap.wrap: return 'wrap';
-      case TextWrap.nowrap: return 'nowrap';
-      case TextWrap.balance: return 'balance';
-      case TextWrap.pretty: return 'pretty';
-      case TextWrap.stable: return 'stable';
+      case TextWrap.wrap:
+        return 'wrap';
+      case TextWrap.nowrap:
+        return 'nowrap';
+      case TextWrap.balance:
+        return 'balance';
+      case TextWrap.pretty:
+        return 'pretty';
+      case TextWrap.stable:
+        return 'stable';
     }
   }
 }
 
 enum Hyphens {
-  none, manual, auto;
+  none,
+  manual,
+  auto;
+
   String get value {
     switch (this) {
-      case Hyphens.none: return 'none';
-      case Hyphens.manual: return 'manual';
-      case Hyphens.auto: return 'auto';
+      case Hyphens.none:
+        return 'none';
+      case Hyphens.manual:
+        return 'manual';
+      case Hyphens.auto:
+        return 'auto';
     }
   }
 }
 
 enum OverflowWrap {
-  normal, breakWord, anywhere;
+  normal,
+  breakWord,
+  anywhere;
+
   String get value {
     switch (this) {
-      case OverflowWrap.normal: return 'normal';
-      case OverflowWrap.breakWord: return 'break-word';
-      case OverflowWrap.anywhere: return 'anywhere';
+      case OverflowWrap.normal:
+        return 'normal';
+      case OverflowWrap.breakWord:
+        return 'break-word';
+      case OverflowWrap.anywhere:
+        return 'anywhere';
     }
   }
 }

@@ -30,15 +30,20 @@ Iterable<BlockRange> iterateSpan(State state, Span span) sync* {
   final anchorBlockRaw = resolveBlock(state, span.anchor.blockId)?.block;
   final focusBlockRaw = resolveBlock(state, span.focus.blockId)?.block;
 
-  if (anchorBlockRaw == null) throw StateError('iterateSpan: anchor block not found');
-  if (focusBlockRaw == null) throw StateError('iterateSpan: focus block not found');
-  if (anchorBlockRaw.inlineContent == null) throw StateError('iterateSpan: anchor block is a container, not a leaf');
-  if (focusBlockRaw.inlineContent == null) throw StateError('iterateSpan: focus block is a container, not a leaf');
+  if (anchorBlockRaw == null)
+    throw StateError('iterateSpan: anchor block not found');
+  if (focusBlockRaw == null)
+    throw StateError('iterateSpan: focus block not found');
+  if (anchorBlockRaw.inlineContent == null)
+    throw StateError('iterateSpan: anchor block is a container, not a leaf');
+  if (focusBlockRaw.inlineContent == null)
+    throw StateError('iterateSpan: focus block is a container, not a leaf');
 
   final anchorCtx = selectionContextOf(state, span.anchor.blockId);
   final focusCtx = selectionContextOf(state, span.focus.blockId);
   if (anchorCtx != focusCtx) {
-    throw StateError('iterateSpan: anchor and focus are in different selection contexts');
+    throw StateError(
+        'iterateSpan: anchor and focus are in different selection contexts');
   }
 
   final normalized = normalizeSpan(state, span);
@@ -58,14 +63,17 @@ Iterable<BlockRange> iterateSpan(State state, Span span) sync* {
   yield BlockRange(
     anchorBlock,
     normalized.anchor.offset,
-    anchorBlock.inlineContent != null ? inlineContentLength(anchorBlock.inlineContent!) : 0,
+    anchorBlock.inlineContent != null
+        ? inlineContentLength(anchorBlock.inlineContent!)
+        : 0,
   );
 
   final maxSteps = blockCount(state) + 1;
   int steps = 0;
   var currentId = nextBlockInDocOrder(state, normalized.anchor.blockId);
   while (currentId != null && currentId != normalized.focus.blockId) {
-    if (++steps > maxSteps) throw StateError('iterateSpan: step bound exceeded');
+    if (++steps > maxSteps)
+      throw StateError('iterateSpan: step bound exceeded');
     final current = resolveBlock(state, currentId)?.block;
     if (current != null && current.inlineContent != null) {
       yield BlockRange(
@@ -78,7 +86,8 @@ Iterable<BlockRange> iterateSpan(State state, Span span) sync* {
   }
 
   if (currentId != normalized.focus.blockId) {
-    throw StateError('iterateSpan: walked to end of context without reaching focus block');
+    throw StateError(
+        'iterateSpan: walked to end of context without reaching focus block');
   }
 
   yield BlockRange(focusBlock, 0, normalized.focus.offset);
@@ -96,13 +105,15 @@ Iterable<Block> iterateBlocksInSpan(State state, Span span) sync* {
   final anchorCtx = selectionContextOf(state, span.anchor.blockId);
   final focusCtx = selectionContextOf(state, span.focus.blockId);
   if (anchorCtx != focusCtx) {
-    throw StateError('iterateBlocksInSpan: anchor and focus are in different selection contexts');
+    throw StateError(
+        'iterateBlocksInSpan: anchor and focus are in different selection contexts');
   }
 
   final normalized = normalizeSpan(state, span);
 
   final anchorBlock = resolveBlock(state, normalized.anchor.blockId)?.block;
-  if (anchorBlock == null) throw StateError('iterateBlocksInSpan: block not found');
+  if (anchorBlock == null)
+    throw StateError('iterateBlocksInSpan: block not found');
   yield anchorBlock;
 
   if (normalized.anchor.blockId == normalized.focus.blockId) return;
@@ -111,12 +122,14 @@ Iterable<Block> iterateBlocksInSpan(State state, Span span) sync* {
   int steps = 0;
   var currentId = nextBlockInDocOrder(state, normalized.anchor.blockId);
   while (currentId != null) {
-    if (++steps > maxSteps) throw StateError('iterateBlocksInSpan: step bound exceeded');
+    if (++steps > maxSteps)
+      throw StateError('iterateBlocksInSpan: step bound exceeded');
     final current = resolveBlock(state, currentId)?.block;
     if (current != null) yield current;
     if (currentId == normalized.focus.blockId) return;
     currentId = nextBlockInDocOrder(state, currentId);
   }
 
-  throw StateError('iterateBlocksInSpan: walked to end of context without reaching focus block');
+  throw StateError(
+      'iterateBlocksInSpan: walked to end of context without reaching focus block');
 }

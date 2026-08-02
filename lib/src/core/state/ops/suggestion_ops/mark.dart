@@ -1,7 +1,6 @@
 /// Suggestion mark operations.
 library;
 
-
 import '../../attrs.dart';
 
 import '../../block_id.dart';
@@ -10,7 +9,7 @@ import '../../inline_content.dart';
 import '../../state.dart';
 import '../../suggestions.dart';
 import '../../tw_doc.dart';
- // yMapAsObject etc if needed? Wait, I will need some y-utils in dart.
+// yMapAsObject etc if needed? Wait, I will need some y-utils in dart.
 
 import '../apply_attrs.dart';
 import 'utils.dart';
@@ -115,7 +114,6 @@ OperationResult markDeletion(State state, Span span, SuggestionMintInput input,
   }
 
   return applyOperation(state, (d) {
-    
     for (final write in plan.writes) {
       applyDeletionStrikeInTx(
         d,
@@ -386,8 +384,8 @@ bool _strikeBlockRange(
   return tagged;
 }
 
-List<InlineItem> mergeAdjacentSameAttrsTextItems(
-    List<InlineItem> items, [Map<String, AttrEqualsFn>? customEquals]) {
+List<InlineItem> mergeAdjacentSameAttrsTextItems(List<InlineItem> items,
+    [Map<String, AttrEqualsFn>? customEquals]) {
   // simple version since dart doesn't have Yjs CRDT in-place mutation needs
   final out = <InlineItem>[];
   for (final item in items) {

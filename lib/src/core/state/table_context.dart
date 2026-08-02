@@ -58,7 +58,8 @@ List<BlockId> getChildIds(State state, BlockId parentId) {
 
 TableContext? resolveTableContext(State state, BlockId blockId) {
   BlockId? cellId;
-  for (final id in ancestorChain(state, getBlock(state, blockId)!).map((b) => b.id)) {
+  for (final id
+      in ancestorChain(state, getBlock(state, blockId)!).map((b) => b.id)) {
     if (getBlock(state, id)?.type == 'table-cell') {
       cellId = id;
       break;
@@ -88,9 +89,10 @@ TableContext? resolveTableContext(State state, BlockId blockId) {
   if (rowIndex < 0 || colIndex < 0 || caretRowCells == null) return null;
 
   final spanned = cellIdsByRow.any((cells) => cells.any((cid) {
-    final c = getBlock(state, cid);
-    return c != null && (isSpan(c.attrs['rowSpan']) || isSpan(c.attrs['colSpan']));
-  }));
+        final c = getBlock(state, cid);
+        return c != null &&
+            (isSpan(c.attrs['rowSpan']) || isSpan(c.attrs['colSpan']));
+      }));
 
   final grid = buildTableGrid(state, tableId);
   final ragged = grid == null
@@ -117,8 +119,8 @@ TableGrid? buildTableGrid(State state, BlockId tableId) {
   final rows = getChildIds(state, tableId)
       .where((rid) => getBlock(state, rid)?.type == 'table-row')
       .map((rid) => getChildIds(state, rid)
-          .where((cid) => getBlock(state, cid)?.type == 'table-cell')
-          .map((cid) {
+              .where((cid) => getBlock(state, cid)?.type == 'table-cell')
+              .map((cid) {
             final attrs = getBlock(state, cid)?.attrs ?? const {};
             return GridCell(
               cellId: cid,

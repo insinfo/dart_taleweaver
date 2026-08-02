@@ -134,7 +134,8 @@ InsertTextPlan planInsertTextFullReplace(
   ReadonlyAttrs attrs, {
   Map<String, AttrEqualsFn>? customEquals,
 }) {
-  final (left, right) = splitInlineContentAtOffset(InlineContent(items), offset);
+  final (left, right) =
+      splitInlineContentAtOffset(InlineContent(items), offset);
   final newRun = TextItem(text: text, attrs: attrs);
   final merged = mergeAdjacentTextItems(
     [...left, newRun, ...right],

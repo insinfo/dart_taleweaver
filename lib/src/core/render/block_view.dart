@@ -20,7 +20,7 @@ abstract class BlockViewBase {
 
 class ContainerBlockView implements BlockViewBase {
   final String kind = 'container';
-  
+
   @override
   final BlockId id;
   @override
@@ -40,7 +40,7 @@ class ContainerBlockView implements BlockViewBase {
 
 class LeafBlockView implements BlockViewBase {
   final String kind = 'leaf';
-  
+
   @override
   final BlockId id;
   @override
@@ -49,7 +49,7 @@ class LeafBlockView implements BlockViewBase {
   final ReadonlyAttrs attrs;
   @override
   final ComputedStyle computedStyle;
-  
+
   final InlineContent inlineContent;
 
   const LeafBlockView({
@@ -65,9 +65,9 @@ typedef BlockView = BlockViewBase;
 
 abstract class RenderContext {
   State get state;
-  
+
   String? footnoteNumber(BlockId contentBlockId);
   CounterValue? counterValue(String scopeKey, BlockId blockId);
-  
+
   SuggestionView get suggestionView;
 }

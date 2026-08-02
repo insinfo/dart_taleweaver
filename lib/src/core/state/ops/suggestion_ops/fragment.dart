@@ -1,7 +1,6 @@
 /// Suggestion fragment operations.
 library;
 
-
 import '../../block_compare.dart';
 import '../../block_id.dart';
 import '../../block_position.dart';
@@ -38,7 +37,9 @@ class ReplaceFragmentPlan {
 List<InlineItem> _tagInsertionRuns(List<InlineItem> items, SuggestionId insId) {
   return items.map((it) {
     if (it is TextItem) {
-      return TextItem(text: it.text, attrs: {...it.attrs, insertionSuggestionAttr: insId.value});
+      return TextItem(
+          text: it.text,
+          attrs: {...it.attrs, insertionSuggestionAttr: insId.value});
     }
     return it;
   }).toList();
@@ -70,28 +71,31 @@ int _fragmentLineLength(SiblingBlockInit line) {
 }
 
 ReplaceFragmentPlan planReplaceWithSuggestedFragment(
-  State state,
-  Span span,
-  List<SiblingBlockInit> fragment,
-  ReplaceSuggestionInput input,
-  IdAllocator allocator,
-  [Map<String, dynamic>? customEquals]
-) {
+    State state,
+    Span span,
+    List<SiblingBlockInit> fragment,
+    ReplaceSuggestionInput input,
+    IdAllocator allocator,
+    [Map<String, dynamic>? customEquals]) {
   final at = spanStart(state, span);
   final resolved = resolveBlock(state, at.blockId);
   if (resolved == null || resolved.block.inlineContent == null) {
-    throw StateError('planReplaceWithSuggestedFragment: block "${at.blockId}" not found or not a leaf');
+    throw StateError(
+        'planReplaceWithSuggestedFragment: block "${at.blockId}" not found or not a leaf');
   }
-  
+
   final kind = resolved.kind;
   final c = at.offset;
   final n = fragment.length;
 
-  final delPlan = planMarkDeletion(state, span, SuggestionMintInput(
-    id: input.deletionId,
-    author: input.author,
-    createdAt: input.createdAt,
-  ));
+  final delPlan = planMarkDeletion(
+      state,
+      span,
+      SuggestionMintInput(
+        id: input.deletionId,
+        author: input.author,
+        createdAt: input.createdAt,
+      ));
 
   List<InlineItem> prefix;
   List<InlineItem> tailBundle;
@@ -113,33 +117,37 @@ ReplaceFragmentPlan planReplaceWithSuggestedFragment(
     final startBlockId = at.blockId;
     final endBlockId = end.blockId;
     final crossBlock = startBlockId != endBlockId;
-    
-    final bWrite = delPlan.writes.where((w) => w.blockId == startBlockId).firstOrNull;
+
+    final bWrite =
+        delPlan.writes.where((w) => w.blockId == startBlockId).firstOrNull;
     if (bWrite != null) {
       bRangeStart = bWrite.rangeStart;
       bRangeEnd = bWrite.rangeEnd;
     }
     bAppendJoinEmbed = crossBlock;
     bDeletionId = bWrite != null || crossBlock ? delPlan.id : null;
-    
-    final bItems = bWrite != null ? bWrite.items : resolved.block.inlineContent!.items.toList();
+
+    final bItems = bWrite != null
+        ? bWrite.items
+        : resolved.block.inlineContent!.items.toList();
     bStrikeItems = bItems;
-    
+
     final split = splitInlineContentAtOffset(InlineContent(bItems), c);
     prefix = split.$1.toList();
     final afterPrefix = split.$2.toList();
-    
+
     tailBundle = crossBlock
         ? [...afterPrefix, _buildJoinSuggestionEmbed(delPlan.id)]
         : afterPrefix;
-        
+
     for (final w in delPlan.writes) {
       if (w.blockId == startBlockId) continue;
       final appendJoinEmbed = w.blockId != endBlockId;
       final items = appendJoinEmbed
-          ? mergeAdjacentTextItems([...w.items, _buildJoinSuggestionEmbed(delPlan.id)])
+          ? mergeAdjacentTextItems(
+              [...w.items, _buildJoinSuggestionEmbed(delPlan.id)])
           : w.items;
-          
+
       extraWrites.add(ResolveWrite(
         blockId: w.blockId,
         kind: delPlan.kind,
@@ -150,7 +158,7 @@ ReplaceFragmentPlan planReplaceWithSuggestedFragment(
         appendJoinEmbed: appendJoinEmbed,
       ));
     }
-    
+
     if (delPlan.taggedAny && !delPlan.reusing) {
       delRecord = SuggestionRecord(
         id: delPlan.id,
@@ -162,14 +170,14 @@ ReplaceFragmentPlan planReplaceWithSuggestedFragment(
   }
 
   ResolveWrite bWriteEntry(List<InlineItem> items) => ResolveWrite(
-    blockId: at.blockId,
-    kind: kind,
-    items: items,
-    rangeStart: bRangeStart,
-    rangeEnd: bRangeEnd,
-    deletionId: bDeletionId,
-    appendJoinEmbed: bAppendJoinEmbed,
-  );
+        blockId: at.blockId,
+        kind: kind,
+        items: items,
+        rangeStart: bRangeStart,
+        rangeEnd: bRangeEnd,
+        deletionId: bDeletionId,
+        appendJoinEmbed: bAppendJoinEmbed,
+      );
 
   if (n == 0) {
     final bItems = mergeAdjacentTextItems([...prefix, ...tailBundle]);
@@ -185,7 +193,7 @@ ReplaceFragmentPlan planReplaceWithSuggestedFragment(
 
   SuggestionId insId;
   SuggestionRecord? insRecord;
-  
+
   if (n == 1) {
     final decision = resolveCoalesce(
       state,
@@ -197,12 +205,20 @@ ReplaceFragmentPlan planReplaceWithSuggestedFragment(
     insId = decision.id;
     insRecord = decision.reusing
         ? null
-        : SuggestionRecord(id: insId, kind: 'insertion', author: input.author, createdAt: input.createdAt);
+        : SuggestionRecord(
+            id: insId,
+            kind: 'insertion',
+            author: input.author,
+            createdAt: input.createdAt);
   } else {
     insId = input.insertionId;
-    insRecord = SuggestionRecord(id: insId, kind: 'insertion', author: input.author, createdAt: input.createdAt);
+    insRecord = SuggestionRecord(
+        id: insId,
+        kind: 'insertion',
+        author: input.author,
+        createdAt: input.createdAt);
   }
-  
+
   final records = <SuggestionRecord>[];
   if (insRecord != null) records.add(insRecord);
   if (delRecord != null) records.add(delRecord);
@@ -217,18 +233,19 @@ ReplaceFragmentPlan planReplaceWithSuggestedFragment(
       _fragmentLineItems(line0, insId),
       customEquals,
     );
-    
+
     final bItems = mergeAdjacentTextItems([
       ...prefix,
       ..._fragmentLineItems(line0, insId),
       ...tailBundle,
     ]);
-    
+
     return ReplaceFragmentPlan(
       writes: [bWriteEntry(bItems), ...extraWrites],
       newBlocks: const [],
       records: records,
-      endPosition: Position(blockId: at.blockId, offset: c + _fragmentLineLength(line0)),
+      endPosition:
+          Position(blockId: at.blockId, offset: c + _fragmentLineLength(line0)),
       bInsertPlan: bInsertPlan,
       fragmentLength: n,
     );
@@ -236,9 +253,10 @@ ReplaceFragmentPlan planReplaceWithSuggestedFragment(
 
   final parentId = resolved.block.parentId;
   if (parentId == null) {
-    throw StateError('planReplaceWithSuggestedFragment: block "${at.blockId}" is a root');
+    throw StateError(
+        'planReplaceWithSuggestedFragment: block "${at.blockId}" is a root');
   }
-  
+
   final oldNext = resolved.block.nextSiblingId;
   final line0 = fragment[0];
   final nbIds = <BlockId>[];
@@ -266,12 +284,14 @@ ReplaceFragmentPlan planReplaceWithSuggestedFragment(
     final nbId = nbIds[i - 1];
     final prevSiblingId = i == 1 ? at.blockId : nbIds[i - 2];
     final nextSiblingId = isLast ? oldNext : nbIds[i];
-    
+
     final lineItems = _fragmentLineItems(fragLine, insId);
     final blockItems = mergeAdjacentTextItems(
-      isLast ? [...lineItems, ...tailBundle] : [...lineItems, _buildSplitSuggestionEmbed(insId)],
+      isLast
+          ? [...lineItems, ...tailBundle]
+          : [...lineItems, _buildSplitSuggestionEmbed(insId)],
     );
-    
+
     newBlocks.add(NewBlockSpec(
       id: nbId,
       kind: kind,
@@ -286,12 +306,13 @@ ReplaceFragmentPlan planReplaceWithSuggestedFragment(
 
   final lastNbId = nbIds[n - 2];
   final lastFragLine = fragment[n - 1];
-  
+
   return ReplaceFragmentPlan(
     writes: [bWriteEntry(bItems), ...extraWrites],
     newBlocks: newBlocks,
     records: records,
-    endPosition: Position(blockId: lastNbId, offset: _fragmentLineLength(lastFragLine)),
+    endPosition:
+        Position(blockId: lastNbId, offset: _fragmentLineLength(lastFragLine)),
     bInsertPlan: bInsertPlan,
     fragmentLength: n,
   );
@@ -304,35 +325,36 @@ class ReplaceFragmentResult {
 }
 
 ReplaceFragmentResult replaceWithSuggestedFragment(
-  State state,
-  Span span,
-  List<SiblingBlockInit> fragment,
-  ReplaceSuggestionInput input,
-  IdAllocator allocator,
-  [Map<String, dynamic>? customEquals]
-) {
-  final plan = planReplaceWithSuggestedFragment(state, span, fragment, input, allocator, customEquals);
-  
+    State state,
+    Span span,
+    List<SiblingBlockInit> fragment,
+    ReplaceSuggestionInput input,
+    IdAllocator allocator,
+    [Map<String, dynamic>? customEquals]) {
+  final plan = planReplaceWithSuggestedFragment(
+      state, span, fragment, input, allocator, customEquals);
+
   final result = applyOperation(state, (doc) {
     final firstWrite = plan.writes[0];
     final startBlockId = firstWrite.blockId;
-    
+
     for (final w in plan.writes) {
       final isStart = w.blockId == startBlockId;
       if (isStart && plan.fragmentLength > 1) {
         insertItemsInTx(doc, plan.bInsertPlan!);
         continue;
       }
-      
+
       final insertPlan = isStart ? plan.bInsertPlan : null;
-      _applySurgicalFragmentWrite(doc, w, input.author, customEquals, insertPlan);
+      _applySurgicalFragmentWrite(
+          doc, w, input.author, customEquals, insertPlan);
     }
-    
+
     if (plan.newBlocks.isNotEmpty) {
       final firstNew = plan.newBlocks.first;
       final lastNew = plan.newBlocks.last;
       final kind = firstWrite.kind;
-      
+
       final targetMap = kind == ResolvedBlockKind.embed
           ? doc.getEmbedContentMap(startBlockId.value)
           : (kind == ResolvedBlockKind.template
@@ -341,7 +363,7 @@ ReplaceFragmentResult replaceWithSuggestedFragment(
       if (targetMap != null) {
         targetMap['nextSiblingId'] = firstNew.id.value;
       }
-      
+
       if (lastNew.nextSiblingId != null) {
         final nextMap = kind == ResolvedBlockKind.embed
             ? doc.getEmbedContentMap(lastNew.nextSiblingId!.value)
@@ -361,15 +383,15 @@ ReplaceFragmentResult replaceWithSuggestedFragment(
           parentMap['lastChildId'] = lastNew.id.value;
         }
       }
-      
+
       insertNewBlocksInTx(doc, plan.newBlocks);
     }
-    
+
     for (final rec in plan.records) {
       writeSuggestionRecordInTx(doc, rec);
     }
   });
-  
+
   return ReplaceFragmentResult(result, plan.endPosition);
 }
 
@@ -393,26 +415,28 @@ void _applySurgicalFragmentWrite(
       'replaceWithSuggestedFragment',
     );
   }
-  
+
   if (insertPlan != null) {
     insertItemsInTx(doc, insertPlan);
   }
-  
+
   if (w.appendJoinEmbed) {
     if (w.deletionId == null) {
-      throw StateError('applySurgicalFragmentWrite: appendJoinEmbed requires a deletionId');
+      throw StateError(
+          'applySurgicalFragmentWrite: appendJoinEmbed requires a deletionId');
     }
-    
+
     final targetMap = w.kind == ResolvedBlockKind.embed
         ? doc.getEmbedContentMap(w.blockId.value)
         : (w.kind == ResolvedBlockKind.template
             ? doc.getTemplateContentMap(w.blockId.value)
             : doc.getBlockMap(w.blockId.value));
-            
+
     if (targetMap != null) {
       final content = targetMap['inlineContent'];
       if (content is InlineContent) {
-        final newItems = List<InlineItem>.from(content.items)..add(_buildJoinSuggestionEmbed(w.deletionId!));
+        final newItems = List<InlineItem>.from(content.items)
+          ..add(_buildJoinSuggestionEmbed(w.deletionId!));
         targetMap['inlineContent'] = InlineContent(newItems);
       }
     }
@@ -420,13 +444,12 @@ void _applySurgicalFragmentWrite(
 }
 
 ReplaceFragmentResult insertFragmentAsSuggestion(
-  State state,
-  Position at,
-  List<SiblingBlockInit> fragment,
-  SuggestionMintInput input,
-  IdAllocator allocator,
-  [Map<String, dynamic>? customEquals]
-) {
+    State state,
+    Position at,
+    List<SiblingBlockInit> fragment,
+    SuggestionMintInput input,
+    IdAllocator allocator,
+    [Map<String, dynamic>? customEquals]) {
   return replaceWithSuggestedFragment(
     state,
     createSpan(at, at),

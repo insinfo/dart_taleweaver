@@ -13,10 +13,12 @@ OperationResult mergeSectionWithPrevious(
 ) {
   final section = getBlock(state, sectionId);
   if (section == null) {
-    throw StateError('mergeSectionWithPrevious: section "$sectionId" not found');
+    throw StateError(
+        'mergeSectionWithPrevious: section "$sectionId" not found');
   }
   if (section.type != 'section' || section.parentId != state.rootId) {
-    throw StateError('mergeSectionWithPrevious: block "$sectionId" is not a flat doc-root section');
+    throw StateError(
+        'mergeSectionWithPrevious: block "$sectionId" is not a flat doc-root section');
   }
 
   final pId = section.prevSiblingId;
@@ -26,7 +28,8 @@ OperationResult mergeSectionWithPrevious(
 
   final prevSection = getBlock(state, pId);
   if (prevSection == null || prevSection.type != 'section') {
-    throw StateError('mergeSectionWithPrevious: previous sibling "$pId" is not a section');
+    throw StateError(
+        'mergeSectionWithPrevious: previous sibling "$pId" is not a section');
   }
 
   final movedChildren = <BlockId>[];

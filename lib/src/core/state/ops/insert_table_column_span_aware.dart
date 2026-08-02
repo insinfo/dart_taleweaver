@@ -77,14 +77,20 @@ InsertTableColumnSpanAwarePlan? planInsertTableColumnSpanAware(
   final caret = caretList.first;
 
   final rowCount = grid.occupancy.length;
-  final gc = position == ColumnPosition.left ? caret.gridCol : caret.gridCol + caret.colSpan;
+  final gc = position == ColumnPosition.left
+      ? caret.gridCol
+      : caret.gridCol + caret.colSpan;
 
   final crossingIds = <BlockId>{};
   final uncoveredRows = <int>[];
 
   for (int r = 0; r < rowCount; r++) {
-    final left = gc - 1 >= 0 ? (gc - 1 < grid.occupancy[r].length ? grid.occupancy[r][gc - 1] : null) : null;
-    final right = gc < grid.columnCount ? (gc < grid.occupancy[r].length ? grid.occupancy[r][gc] : null) : null;
+    final left = gc - 1 >= 0
+        ? (gc - 1 < grid.occupancy[r].length ? grid.occupancy[r][gc - 1] : null)
+        : null;
+    final right = gc < grid.columnCount
+        ? (gc < grid.occupancy[r].length ? grid.occupancy[r][gc] : null)
+        : null;
     if (left != null && left == right) {
       crossingIds.add(left);
     } else {
@@ -96,7 +102,8 @@ InsertTableColumnSpanAwarePlan? planInsertTableColumnSpanAware(
     final cell = grid.cells.firstWhere((c) => c.cellId == cellId);
     final block = getBlock(state, cellId);
     if (block == null) {
-      throw StateError('insertTableColumnSpanAware: crossing cell "$cellId" not found in state');
+      throw StateError(
+          'insertTableColumnSpanAware: crossing cell "$cellId" not found in state');
     }
     final newAttrs = Map<String, dynamic>.of(block.attrs);
     newAttrs['colSpan'] = cell.colSpan + 1;
@@ -106,7 +113,7 @@ InsertTableColumnSpanAwarePlan? planInsertTableColumnSpanAware(
   final newCells = uncoveredRows.map((r) {
     final originating = grid.cells.where((c) => c.gridRow == r).toList();
     originating.sort((a, b) => a.gridCol.compareTo(b.gridCol));
-    
+
     BlockId? prevCellId;
     for (final c in originating) {
       if (c.gridCol < gc) prevCellId = c.cellId;
@@ -135,7 +142,8 @@ InsertTableColumnSpanAwarePlan? planInsertTableColumnSpanAware(
   ReadonlyAttrs? newTableAttrs;
   if (table != null && isColumnWidths(cw)) {
     newTableAttrs = Map<String, dynamic>.of(table.attrs);
-    newTableAttrs['columnWidths'] = spliceColumnWidth(parseColumnWidths(cw), gc);
+    newTableAttrs['columnWidths'] =
+        spliceColumnWidth(parseColumnWidths(cw), gc);
   }
 
   return InsertTableColumnSpanAwarePlan(
@@ -146,7 +154,8 @@ InsertTableColumnSpanAwarePlan? planInsertTableColumnSpanAware(
   );
 }
 
-void insertTableColumnSpanAwareInTx(TwDoc doc, InsertTableColumnSpanAwarePlan plan) {
+void insertTableColumnSpanAwareInTx(
+    TwDoc doc, InsertTableColumnSpanAwarePlan plan) {
   for (final bump in plan.crossingBumps) {
     setBlockAttrsInTx(doc, bump.cellId, bump.newAttrs);
   }
@@ -156,8 +165,10 @@ void insertTableColumnSpanAwareInTx(TwDoc doc, InsertTableColumnSpanAwarePlan pl
       BlockFields.type: 'table-cell',
       BlockFields.attrs: <String, dynamic>{},
       BlockFields.parentId: nc.rowId.value,
-      if (nc.prevCellId != null) BlockFields.prevSiblingId: nc.prevCellId!.value,
-      if (nc.nextCellId != null) BlockFields.nextSiblingId: nc.nextCellId!.value,
+      if (nc.prevCellId != null)
+        BlockFields.prevSiblingId: nc.prevCellId!.value,
+      if (nc.nextCellId != null)
+        BlockFields.nextSiblingId: nc.nextCellId!.value,
       BlockFields.firstChildId: nc.paragraphId.value,
       BlockFields.lastChildId: nc.paragraphId.value,
     });
@@ -170,18 +181,22 @@ void insertTableColumnSpanAwareInTx(TwDoc doc, InsertTableColumnSpanAwarePlan pl
     });
 
     if (nc.prevCellId != null) {
-      doc.getBlockMap(nc.prevCellId!.value)?[BlockFields.nextSiblingId] = nc.cellId.value;
+      doc.getBlockMap(nc.prevCellId!.value)?[BlockFields.nextSiblingId] =
+          nc.cellId.value;
       doc.markDirty(nc.prevCellId!.value);
     }
     if (nc.nextCellId != null) {
-      doc.getBlockMap(nc.nextCellId!.value)?[BlockFields.prevSiblingId] = nc.cellId.value;
+      doc.getBlockMap(nc.nextCellId!.value)?[BlockFields.prevSiblingId] =
+          nc.cellId.value;
       doc.markDirty(nc.nextCellId!.value);
     }
     if (nc.prevCellId == null || nc.nextCellId == null) {
       final yRow = doc.getBlockMap(nc.rowId.value);
       if (yRow != null) {
-        if (nc.prevCellId == null) yRow[BlockFields.firstChildId] = nc.cellId.value;
-        if (nc.nextCellId == null) yRow[BlockFields.lastChildId] = nc.cellId.value;
+        if (nc.prevCellId == null)
+          yRow[BlockFields.firstChildId] = nc.cellId.value;
+        if (nc.nextCellId == null)
+          yRow[BlockFields.lastChildId] = nc.cellId.value;
         doc.markDirty(nc.rowId.value);
       }
     }

@@ -45,10 +45,13 @@ List<InlineItem> _spliceRun(
   final left = split1.$1;
   final split2 = splitInlineContentAtOffset(content, end);
   final right = split2.$2;
-  
-  final mid = text.isEmpty ? <InlineItem>[] : <InlineItem>[TextItem(text: text, attrs: attrs)];
-  
-  return mergeAdjacentTextItems([...left, ...mid, ...right], customEquals: customEquals);
+
+  final mid = text.isEmpty
+      ? <InlineItem>[]
+      : <InlineItem>[TextItem(text: text, attrs: attrs)];
+
+  return mergeAdjacentTextItems([...left, ...mid, ...right],
+      customEquals: customEquals);
 }
 
 ReplaceAllPlan planReplaceMatches(
@@ -76,7 +79,8 @@ ReplaceAllPlan planReplaceMatches(
     final block = resolved.block;
     final kind = resolved.kind;
     if (block.inlineContent == null) {
-      throw StateError('planReplaceMatches: block "$blockId" is not a leaf (no inlineContent)');
+      throw StateError(
+          'planReplaceMatches: block "$blockId" is not a leaf (no inlineContent)');
     }
 
     for (var i = 1; i < blockMatches.length; i++) {
@@ -94,11 +98,13 @@ ReplaceAllPlan planReplaceMatches(
 
     for (var i = blockMatches.length - 1; i >= 0; i--) {
       final m = blockMatches[i];
-      
+
       final content = InlineContent(items);
       final afterStart = splitInlineContentAtOffset(content, m.start).$2;
-      final removedSlice = splitInlineContentAtOffset(InlineContent(afterStart), m.end - m.start).$1;
-      
+      final removedSlice =
+          splitInlineContentAtOffset(InlineContent(afterStart), m.end - m.start)
+              .$1;
+
       collectEmbedContentSubtreeFromInlineContent(
         state,
         InlineContent(removedSlice),
@@ -106,7 +112,8 @@ ReplaceAllPlan planReplaceMatches(
       );
 
       final attrs = attrsAtOffset(content, m.start);
-      items = _spliceRun(items, m.start, m.end, replacement, attrs, customEquals);
+      items =
+          _spliceRun(items, m.start, m.end, replacement, attrs, customEquals);
     }
 
     blockWrites.add(BlockWrite(blockId: blockId, kind: kind, items: items));
@@ -142,13 +149,13 @@ OperationResult applyReplaceAllPlan(
           : (w.kind == ResolvedBlockKind.template
               ? doc.getTemplateContentMap(w.blockId.value)
               : doc.getBlockMap(w.blockId.value));
-      
+
       if (yBlock != null) {
         yBlock['inlineContent'] = InlineContent(w.items);
         doc.markDirty(w.blockId.value);
       }
     }
-    
+
     if (plan.embedContentIdsToDelete.isNotEmpty) {
       for (final id in plan.embedContentIdsToDelete) {
         doc.deleteEmbedContent(id.value);

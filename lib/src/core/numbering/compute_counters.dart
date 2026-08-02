@@ -56,7 +56,7 @@ Map<BlockId, CounterValue> computeCounters(
     }
 
     counters[event.level] = value;
-    
+
     // Clear deeper levels by truncating the list
     counters.length = event.level + 1;
 

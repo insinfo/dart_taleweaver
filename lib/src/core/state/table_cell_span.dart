@@ -5,7 +5,8 @@ library;
 
 int? spanValue(dynamic v) {
   if (v is int && v > 1) return v;
-  if (v is double && v.isFinite && v.truncateToDouble() == v && v > 1) return v.toInt();
+  if (v is double && v.isFinite && v.truncateToDouble() == v && v > 1)
+    return v.toInt();
   return null;
 }
 

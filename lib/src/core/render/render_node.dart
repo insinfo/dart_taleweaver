@@ -23,7 +23,7 @@ class ElementBox implements RenderNode {
   final Style style;
   @override
   final ComputedStyle? computedStyle;
-  
+
   final LayoutBoxMetadata? metadata;
   final List<RenderNode> children;
 
@@ -34,7 +34,7 @@ class ElementBox implements RenderNode {
     this.computedStyle,
     this.metadata,
   });
-  
+
   ElementBox copyWith({
     ComputedStyle? computedStyle,
     List<RenderNode>? children,
@@ -58,7 +58,7 @@ class TextBox implements RenderNode {
   final Style style;
   @override
   final ComputedStyle? computedStyle;
-  
+
   final String text;
   final String? link;
 
@@ -69,7 +69,7 @@ class TextBox implements RenderNode {
     this.computedStyle,
     this.link,
   });
-  
+
   TextBox copyWith({
     ComputedStyle? computedStyle,
   }) {

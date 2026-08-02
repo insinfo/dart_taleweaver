@@ -53,15 +53,21 @@ MergeCellsPlan? planMergeCells(State state, CellRange range) {
   if (grid == null) return null;
 
   bool inRange(int gridRow, int gridCol) {
-    return gridRow >= range.minRow && gridRow <= range.maxRow &&
-           gridCol >= range.minCol && gridCol <= range.maxCol;
+    return gridRow >= range.minRow &&
+        gridRow <= range.maxRow &&
+        gridCol >= range.minCol &&
+        gridCol <= range.maxCol;
   }
 
-  final survivorIdx = grid.cells.indexWhere((c) => c.gridRow == range.minRow && c.gridCol == range.minCol);
+  final survivorIdx = grid.cells.indexWhere(
+      (c) => c.gridRow == range.minRow && c.gridCol == range.minCol);
   if (survivorIdx == -1) return null;
   final survivor = grid.cells[survivorIdx];
 
-  final donors = grid.cells.where((c) => c.cellId != survivor.cellId && inRange(c.gridRow, c.gridCol)).toList();
+  final donors = grid.cells
+      .where(
+          (c) => c.cellId != survivor.cellId && inRange(c.gridRow, c.gridCol))
+      .toList();
   donors.sort((a, b) {
     final dr = a.gridRow.compareTo(b.gridRow);
     if (dr != 0) return dr;
@@ -94,19 +100,19 @@ MergeCellsPlan? planMergeCells(State state, CellRange range) {
   final rowIds = getChildIds(state, range.tableId)
       .where((id) => getBlock(state, id)?.type == 'table-row')
       .toList();
-  
+
   final donorIdSet = donorCellIds.toSet();
   final rowChains = <_RowChain>[];
 
   for (var r = range.minRow; r <= range.maxRow; r++) {
     if (r >= rowIds.length) continue;
     final rowId = rowIds[r];
-    
+
     final remaining = grid.cells
         .where((c) => c.gridRow == r && !donorIdSet.contains(c.cellId))
         .toList()
       ..sort((a, b) => a.gridCol.compareTo(b.gridCol));
-    
+
     rowChains.add(_RowChain(rowId, remaining.map((c) => c.cellId).toList()));
   }
 
@@ -147,8 +153,10 @@ void mergeCellsInTx(TwDoc doc, MergeCellsPlan plan) {
     final yChild = doc.getBlockMap(childId.value);
     if (yChild != null) {
       yChild['parentId'] = plan.survivorId.value;
-      yChild['prevSiblingId'] = i == 0 ? plan.survivorOrigLastChildId?.value : migrated[i - 1].value;
-      yChild['nextSiblingId'] = i == migrated.length - 1 ? null : migrated[i + 1].value;
+      yChild['prevSiblingId'] =
+          i == 0 ? plan.survivorOrigLastChildId?.value : migrated[i - 1].value;
+      yChild['nextSiblingId'] =
+          i == migrated.length - 1 ? null : migrated[i + 1].value;
       doc.markDirty(childId.value);
     }
   }
@@ -157,7 +165,7 @@ void mergeCellsInTx(TwDoc doc, MergeCellsPlan plan) {
     final firstMigrated = migrated.first;
     final lastMigrated = migrated.last;
     final ySurvivor = doc.getBlockMap(plan.survivorId.value);
-    
+
     if (plan.survivorOrigLastChildId != null) {
       final yOrigLast = doc.getBlockMap(plan.survivorOrigLastChildId!.value);
       if (yOrigLast != null) {
@@ -167,7 +175,7 @@ void mergeCellsInTx(TwDoc doc, MergeCellsPlan plan) {
     } else if (ySurvivor != null) {
       ySurvivor['firstChildId'] = firstMigrated.value;
     }
-    
+
     if (ySurvivor != null) {
       ySurvivor['lastChildId'] = lastMigrated.value;
       doc.markDirty(plan.survivorId.value);
@@ -181,13 +189,16 @@ void mergeCellsInTx(TwDoc doc, MergeCellsPlan plan) {
       final yCell = doc.getBlockMap(cellId.value);
       if (yCell != null) {
         yCell['prevSiblingId'] = i == 0 ? null : chain.cellIds[i - 1].value;
-        yCell['nextSiblingId'] = i == chain.cellIds.length - 1 ? null : chain.cellIds[i + 1].value;
+        yCell['nextSiblingId'] =
+            i == chain.cellIds.length - 1 ? null : chain.cellIds[i + 1].value;
         doc.markDirty(cellId.value);
       }
     }
     if (yRow != null) {
-      yRow['firstChildId'] = chain.cellIds.isEmpty ? null : chain.cellIds.first.value;
-      yRow['lastChildId'] = chain.cellIds.isEmpty ? null : chain.cellIds.last.value;
+      yRow['firstChildId'] =
+          chain.cellIds.isEmpty ? null : chain.cellIds.first.value;
+      yRow['lastChildId'] =
+          chain.cellIds.isEmpty ? null : chain.cellIds.last.value;
       doc.markDirty(chain.rowId.value);
     }
   }

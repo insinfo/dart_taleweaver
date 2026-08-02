@@ -59,7 +59,8 @@ OperationResult insertBlock(
   IdAllocator allocator, [
   BlockKindResolver? resolver,
 ]) {
-  final plan = planInsertBlock(state, parentId, beforeSiblingId, args, allocator, resolver);
+  final plan = planInsertBlock(
+      state, parentId, beforeSiblingId, args, allocator, resolver);
   return applyOperation(state, (doc) {
     insertBlockInTx(doc, plan);
   });
@@ -147,10 +148,12 @@ InsertBlockPlan planInsertBlock(
   } else {
     final beforeSibling = getBlock(state, beforeSiblingId);
     if (beforeSibling == null) {
-      throw StateError('insertBlock: beforeSibling "$beforeSiblingId" not found');
+      throw StateError(
+          'insertBlock: beforeSibling "$beforeSiblingId" not found');
     }
     if (beforeSibling.parentId != parentId) {
-      throw StateError('insertBlock: beforeSibling is not a child of "$parentId"');
+      throw StateError(
+          'insertBlock: beforeSibling is not a child of "$parentId"');
     }
     nextSiblingId = beforeSiblingId;
     prevSiblingId = beforeSibling.prevSiblingId;

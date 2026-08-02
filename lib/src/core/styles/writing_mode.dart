@@ -11,18 +11,25 @@ enum WritingMode {
 
   String get value {
     switch (this) {
-      case WritingMode.horizontalTb: return 'horizontal-tb';
-      case WritingMode.verticalRl: return 'vertical-rl';
-      case WritingMode.verticalLr: return 'vertical-lr';
+      case WritingMode.horizontalTb:
+        return 'horizontal-tb';
+      case WritingMode.verticalRl:
+        return 'vertical-rl';
+      case WritingMode.verticalLr:
+        return 'vertical-lr';
     }
   }
 
   static WritingMode fromString(String val) {
     switch (val) {
-      case 'horizontal-tb': return WritingMode.horizontalTb;
-      case 'vertical-rl': return WritingMode.verticalRl;
-      case 'vertical-lr': return WritingMode.verticalLr;
-      default: throw ArgumentError('Unhandled writing mode: $val');
+      case 'horizontal-tb':
+        return WritingMode.horizontalTb;
+      case 'vertical-rl':
+        return WritingMode.verticalRl;
+      case 'vertical-lr':
+        return WritingMode.verticalLr;
+      default:
+        throw ArgumentError('Unhandled writing mode: $val');
     }
   }
 }
@@ -34,16 +41,21 @@ enum Direction {
 
   String get value {
     switch (this) {
-      case Direction.ltr: return 'ltr';
-      case Direction.rtl: return 'rtl';
+      case Direction.ltr:
+        return 'ltr';
+      case Direction.rtl:
+        return 'rtl';
     }
   }
 
   static Direction fromString(String val) {
     switch (val) {
-      case 'ltr': return Direction.ltr;
-      case 'rtl': return Direction.rtl;
-      default: throw ArgumentError('Unhandled direction: $val');
+      case 'ltr':
+        return Direction.ltr;
+      case 'rtl':
+        return Direction.rtl;
+      default:
+        throw ArgumentError('Unhandled direction: $val');
     }
   }
 }
@@ -110,7 +122,9 @@ PhysicalRect logicalToPhysical(
 
       final x = writingMode == WritingMode.verticalLr
           ? logical.blockOffset
-          : (containingBlockSize == null || containingBlockSize.isInfinite || containingBlockSize.isNaN
+          : (containingBlockSize == null ||
+                  containingBlockSize.isInfinite ||
+                  containingBlockSize.isNaN
               ? logical.blockOffset
               : containingBlockSize - logical.blockOffset - logical.blockSize);
 
@@ -159,7 +173,9 @@ LogicalRect physicalToLogical(
   if (writingMode == WritingMode.verticalLr) {
     blockOffset = physical.x;
   } else {
-    blockOffset = (containingBlockSize == null || containingBlockSize.isInfinite || containingBlockSize.isNaN)
+    blockOffset = (containingBlockSize == null ||
+            containingBlockSize.isInfinite ||
+            containingBlockSize.isNaN)
         ? physical.x
         : containingBlockSize - physical.x - blockSize;
   }

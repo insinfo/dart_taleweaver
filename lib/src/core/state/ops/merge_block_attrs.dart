@@ -17,21 +17,21 @@ OperationResult mergeBlockAttrs(
   if (resolved == null) {
     throw StateError('mergeBlockAttrs: block "$blockId" not found');
   }
-  
+
   final block = resolved.block;
   final merged = mergeAttrs(block.attrs, incoming);
-  
+
   return applyOperation(state, (doc) {
     if (attrsEqual(block.attrs, merged, customEquals: customEquals)) {
       return;
     }
-    
-    final yBlock = resolved.kind == ResolvedBlockKind.embed 
+
+    final yBlock = resolved.kind == ResolvedBlockKind.embed
         ? doc.getEmbedContentMap(blockId.value)
-        : (resolved.kind == ResolvedBlockKind.template 
-            ? doc.getTemplateContentMap(blockId.value) 
+        : (resolved.kind == ResolvedBlockKind.template
+            ? doc.getTemplateContentMap(blockId.value)
             : doc.getBlockMap(blockId.value));
-            
+
     if (yBlock != null) {
       yBlock['attrs'] = merged;
       doc.markDirty(blockId.value);

@@ -63,7 +63,8 @@ OperationResult deleteTableColumnSpanAware(State state, TableContext ctx) {
   });
 }
 
-DeleteTableColumnSpanAwarePlan? planDeleteTableColumnSpanAware(State state, TableContext ctx) {
+DeleteTableColumnSpanAwarePlan? planDeleteTableColumnSpanAware(
+    State state, TableContext ctx) {
   final grid = buildTableGrid(state, ctx.tableId);
   if (grid == null) return null;
   final caretList = grid.cells.where((c) => c.cellId == ctx.cellId);
@@ -81,10 +82,12 @@ DeleteTableColumnSpanAwarePlan? planDeleteTableColumnSpanAware(State state, Tabl
 
   for (final c in grid.cells) {
     if (c.gridCol < gc && c.gridCol + c.colSpan - 1 >= gc) {
-      spanBumps.add(_DeleteTableColumnSpanAwareBump(c.cellId, _withColSpan(state, c.cellId, c.colSpan - 1)));
+      spanBumps.add(_DeleteTableColumnSpanAwareBump(
+          c.cellId, _withColSpan(state, c.cellId, c.colSpan - 1)));
     } else if (c.gridCol == gc) {
       if (c.colSpan > 1) {
-        spanBumps.add(_DeleteTableColumnSpanAwareBump(c.cellId, _withColSpan(state, c.cellId, c.colSpan - 1)));
+        spanBumps.add(_DeleteTableColumnSpanAwareBump(
+            c.cellId, _withColSpan(state, c.cellId, c.colSpan - 1)));
       } else {
         final p = planRemoveBlock(state, c.cellId);
         removedCells.add(_DeleteTableColumnSpanAwareRemovedCell(
@@ -106,7 +109,8 @@ DeleteTableColumnSpanAwarePlan? planDeleteTableColumnSpanAware(State state, Tabl
   ReadonlyAttrs? newTableAttrs;
   if (table != null && isColumnWidths(cw)) {
     newTableAttrs = Map<String, dynamic>.of(table.attrs);
-    newTableAttrs['columnWidths'] = removeColumnWidth(parseColumnWidths(cw), gc);
+    newTableAttrs['columnWidths'] =
+        removeColumnWidth(parseColumnWidths(cw), gc);
   }
 
   return DeleteTableColumnSpanAwarePlan(
@@ -130,24 +134,28 @@ ReadonlyAttrs _withColSpan(State state, BlockId cellId, int n) {
   return next;
 }
 
-void deleteTableColumnSpanAwareInTx(TwDoc doc, DeleteTableColumnSpanAwarePlan plan) {
+void deleteTableColumnSpanAwareInTx(
+    TwDoc doc, DeleteTableColumnSpanAwarePlan plan) {
   for (final bump in plan.spanBumps) {
     setBlockAttrsInTx(doc, bump.cellId, bump.newAttrs);
   }
 
   for (final rc in plan.removedCells) {
     if (rc.prevSiblingId != null) {
-      doc.getBlockMap(rc.prevSiblingId!.value)?['nextSiblingId'] = rc.nextSiblingId?.value;
+      doc.getBlockMap(rc.prevSiblingId!.value)?['nextSiblingId'] =
+          rc.nextSiblingId?.value;
       doc.markDirty(rc.prevSiblingId!.value);
     }
     if (rc.nextSiblingId != null) {
-      doc.getBlockMap(rc.nextSiblingId!.value)?['prevSiblingId'] = rc.prevSiblingId?.value;
+      doc.getBlockMap(rc.nextSiblingId!.value)?['prevSiblingId'] =
+          rc.prevSiblingId?.value;
       doc.markDirty(rc.nextSiblingId!.value);
     }
     if (rc.removingFirstChild || rc.removingLastChild) {
       final yRow = doc.getBlockMap(rc.rowId.value);
       if (yRow != null) {
-        if (rc.removingFirstChild) yRow['firstChildId'] = rc.nextSiblingId?.value;
+        if (rc.removingFirstChild)
+          yRow['firstChildId'] = rc.nextSiblingId?.value;
         if (rc.removingLastChild) yRow['lastChildId'] = rc.prevSiblingId?.value;
         doc.markDirty(rc.rowId.value);
       }

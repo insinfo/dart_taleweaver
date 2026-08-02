@@ -120,11 +120,12 @@ Block? prevLeafBlock(State state, Block block) {
 }
 
 /// Iterate over all blocks in the document tree in document order.
-Iterable<Block> iterateBlocksInDocumentOrder(State state, [BlockId? rootId]) sync* {
+Iterable<Block> iterateBlocksInDocumentOrder(State state,
+    [BlockId? rootId]) sync* {
   rootId ??= state.rootId;
   final root = getBlock(state, rootId);
   if (root == null) return;
-  
+
   var current = root;
   while (true) {
     yield current;
@@ -135,11 +136,12 @@ Iterable<Block> iterateBlocksInDocumentOrder(State state, [BlockId? rootId]) syn
 }
 
 /// Iterate over all leaf blocks in the document tree in document order.
-Iterable<Block> iterateLeafBlocksInDocumentOrder(State state, [BlockId? rootId]) sync* {
+Iterable<Block> iterateLeafBlocksInDocumentOrder(State state,
+    [BlockId? rootId]) sync* {
   rootId ??= state.rootId;
   final root = getBlock(state, rootId);
   if (root == null) return;
-  
+
   var current = root.isLeaf ? root : firstLeafBlock(state, root);
   while (true) {
     yield current;

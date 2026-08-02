@@ -94,7 +94,8 @@ ApplyAttrsToRangePlan? planApplyAttrsToRange(State state, Span span) {
   if (segments.isEmpty) return null;
 
   final firstBlockId = segments.first.block.id;
-  final kind = resolveBlock(state, firstBlockId)?.kind ?? ResolvedBlockKind.main;
+  final kind =
+      resolveBlock(state, firstBlockId)?.kind ?? ResolvedBlockKind.main;
 
   return ApplyAttrsToRangePlan(segments: segments, kind: kind);
 }

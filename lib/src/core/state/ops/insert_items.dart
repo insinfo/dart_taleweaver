@@ -53,7 +53,8 @@ InsertItemsPlan planReplaceBlockTailInPlace(
   List<InlineItem> itemsToInsert, [
   Map<String, AttrEqualsFn>? customEquals,
 ]) {
-  final split = splitInlineContentAtOffset(InlineContent(liveItems), keepOffset);
+  final split =
+      splitInlineContentAtOffset(InlineContent(liveItems), keepOffset);
   final left = split.$1;
   // We throw away `split.$2` (the tail).
 

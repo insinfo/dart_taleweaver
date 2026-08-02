@@ -55,12 +55,14 @@ _InlineImageInsertPlan _planInlineImageInsert(
 ) {
   final resolved = resolveBlock(state, position.blockId);
   if (resolved == null) {
-    throw StateError('insertInlineImage: block "${position.blockId}" not found');
+    throw StateError(
+        'insertInlineImage: block "${position.blockId}" not found');
   }
   final block = resolved.block;
   final kind = resolved.kind;
   if (block.inlineContent == null) {
-    throw StateError('insertInlineImage: block "${position.blockId}" is not a leaf');
+    throw StateError(
+        'insertInlineImage: block "${position.blockId}" is not a leaf');
   }
 
   final totalLen = inlineContentLength(block.inlineContent!);
@@ -79,7 +81,8 @@ _InlineImageInsertPlan _planInlineImageInsert(
     },
   );
 
-  final split = splitInlineContentAtOffset(block.inlineContent!, position.offset);
+  final split =
+      splitInlineContentAtOffset(block.inlineContent!, position.offset);
   final left = split.$1;
   final right = split.$2;
 

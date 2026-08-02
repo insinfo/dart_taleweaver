@@ -78,10 +78,12 @@ Map<String, ListDef> getListDefsForState(State state) {
 /// Write a list definition in the current transaction.
 void writeListDefInTx(TwDoc doc, String listId, ListDef def) {
   doc.listDefs[listId] = {
-    'levels': def.levels.map((l) => {
-      'style': l.style,
-      'start': l.start,
-      'restart': l.restart,
-    }).toList(),
+    'levels': def.levels
+        .map((l) => {
+              'style': l.style,
+              'start': l.start,
+              'restart': l.restart,
+            })
+        .toList(),
   };
 }

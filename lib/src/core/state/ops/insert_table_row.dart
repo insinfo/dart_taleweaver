@@ -74,19 +74,25 @@ InsertTableRowPlan planInsertTableRow(
   final prevRowId = position == RowPosition.above
       ? (ctx.rowIndex - 1 >= 0 ? ctx.rowIds[ctx.rowIndex - 1] : null)
       : ctx.rowId;
-  
+
   final nextRowId = position == RowPosition.above
       ? ctx.rowId
-      : (ctx.rowIndex + 1 < ctx.rowIds.length ? ctx.rowIds[ctx.rowIndex + 1] : null);
+      : (ctx.rowIndex + 1 < ctx.rowIds.length
+          ? ctx.rowIds[ctx.rowIndex + 1]
+          : null);
 
   final rowId = allocator.allocate();
-  final cells = List.generate(colCount, (_) => _InsertTableRowCell(
-    allocator.allocate(),
-    allocator.allocate(),
-  ));
+  final cells = List.generate(
+      colCount,
+      (_) => _InsertTableRowCell(
+            allocator.allocate(),
+            allocator.allocate(),
+          ));
 
-  final destIndex = position == RowPosition.above ? ctx.rowIndex : ctx.rowIndex + 1;
-  final headerAttrs = headerRowAttrsAfterRowEdit(state, ctx.tableId, RowEditOp.insert, destIndex);
+  final destIndex =
+      position == RowPosition.above ? ctx.rowIndex : ctx.rowIndex + 1;
+  final headerAttrs = headerRowAttrsAfterRowEdit(
+      state, ctx.tableId, RowEditOp.insert, destIndex);
 
   return InsertTableRowPlan(
     tableId: ctx.tableId,
@@ -114,7 +120,7 @@ void insertTableRowInTx(TwDoc doc, InsertTableRowPlan plan) {
       BlockFields.firstChildId: cell.paragraphId.value,
       BlockFields.lastChildId: cell.paragraphId.value,
     });
-    
+
     doc.setBlockMap(cell.paragraphId.value, {
       BlockFields.type: 'paragraph',
       BlockFields.attrs: <String, dynamic>{},
@@ -130,26 +136,32 @@ void insertTableRowInTx(TwDoc doc, InsertTableRowPlan plan) {
     BlockFields.type: 'table-row',
     BlockFields.attrs: <String, dynamic>{},
     BlockFields.parentId: plan.tableId.value,
-    if (plan.prevRowId != null) BlockFields.prevSiblingId: plan.prevRowId!.value,
-    if (plan.nextRowId != null) BlockFields.nextSiblingId: plan.nextRowId!.value,
+    if (plan.prevRowId != null)
+      BlockFields.prevSiblingId: plan.prevRowId!.value,
+    if (plan.nextRowId != null)
+      BlockFields.nextSiblingId: plan.nextRowId!.value,
     BlockFields.firstChildId: firstCell.cellId.value,
     BlockFields.lastChildId: lastCellEntry.cellId.value,
   });
 
   if (plan.prevRowId != null) {
-    doc.getBlockMap(plan.prevRowId!.value)?[BlockFields.nextSiblingId] = plan.rowId.value;
+    doc.getBlockMap(plan.prevRowId!.value)?[BlockFields.nextSiblingId] =
+        plan.rowId.value;
     doc.markDirty(plan.prevRowId!.value);
   }
   if (plan.nextRowId != null) {
-    doc.getBlockMap(plan.nextRowId!.value)?[BlockFields.prevSiblingId] = plan.rowId.value;
+    doc.getBlockMap(plan.nextRowId!.value)?[BlockFields.prevSiblingId] =
+        plan.rowId.value;
     doc.markDirty(plan.nextRowId!.value);
   }
-  
+
   if (plan.prevRowId == null || plan.nextRowId == null) {
     final yTable = doc.getBlockMap(plan.tableId.value);
     if (yTable != null) {
-      if (plan.prevRowId == null) yTable[BlockFields.firstChildId] = plan.rowId.value;
-      if (plan.nextRowId == null) yTable[BlockFields.lastChildId] = plan.rowId.value;
+      if (plan.prevRowId == null)
+        yTable[BlockFields.firstChildId] = plan.rowId.value;
+      if (plan.nextRowId == null)
+        yTable[BlockFields.lastChildId] = plan.rowId.value;
       doc.markDirty(plan.tableId.value);
     }
   }

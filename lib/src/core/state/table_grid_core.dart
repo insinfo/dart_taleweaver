@@ -74,9 +74,9 @@ TableGrid assignTableGrid(List<List<GridCell>> rows) {
         final rowArr = occ[r + dr];
         for (int dc = 0; dc < colSpan; dc++) {
           final cc = c + dc;
-          
+
           while (rowArr.length <= cc) rowArr.add(null);
-          
+
           if (rowArr[cc] != null) {
             continue;
           }
@@ -99,7 +99,7 @@ TableGrid assignTableGrid(List<List<GridCell>> rows) {
         rowSpan: rowSpan,
         colSpan: colSpan,
       ));
-      
+
       c += colSpan;
       if (c > columnCount) columnCount = c;
     }

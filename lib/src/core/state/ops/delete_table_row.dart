@@ -33,8 +33,10 @@ OperationResult deleteTableRow(State state, TableContext ctx) {
 
 DeleteTableRowPlan planDeleteTableRow(State state, TableContext ctx) {
   final rowPlan = planRemoveBlock(state, ctx.rowId);
-  final headerAttrs = headerRowAttrsAfterRowEdit(state, ctx.tableId, RowEditOp.delete, ctx.rowIndex);
-  return DeleteTableRowPlan(tableId: ctx.tableId, rowPlan: rowPlan, headerAttrs: headerAttrs);
+  final headerAttrs = headerRowAttrsAfterRowEdit(
+      state, ctx.tableId, RowEditOp.delete, ctx.rowIndex);
+  return DeleteTableRowPlan(
+      tableId: ctx.tableId, rowPlan: rowPlan, headerAttrs: headerAttrs);
 }
 
 void deleteTableRowInTx(TwDoc doc, DeleteTableRowPlan plan) {

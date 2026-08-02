@@ -31,21 +31,22 @@ String resolveCrossReference(
 ]) {
   final targetId = props.targetId;
   final refMode = props.refMode;
-  
+
   if (refMode == 'number') {
     final counter = numbering[targetId];
     return counter == null ? brokenCrossReferenceText : counter.formatted;
   }
-  
+
   // refMode == "text" (or fallback for "page" before we have pagination)
   final block = getBlock(state, targetId);
   if (block == null || block.inlineContent == null) {
     return brokenCrossReferenceText;
   }
-  
+
   final length = inlineContentLength(block.inlineContent!);
   if (length == 0) return '';
-  
-  final span = createSpan(createPosition(targetId, 0), createPosition(targetId, length));
+
+  final span =
+      createSpan(createPosition(targetId, 0), createPosition(targetId, length));
   return extractText(state, span, captionEmbedSerializer, view);
 }

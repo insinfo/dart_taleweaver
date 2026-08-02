@@ -52,7 +52,8 @@ _TabInsertPlan _planTabInsert(State state, Position position) {
     properties: {},
   );
 
-  final split = splitInlineContentAtOffset(block.inlineContent!, position.offset);
+  final split =
+      splitInlineContentAtOffset(block.inlineContent!, position.offset);
   final left = split.$1;
   final right = split.$2;
 

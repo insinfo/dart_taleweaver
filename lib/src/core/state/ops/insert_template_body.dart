@@ -48,10 +48,12 @@ InsertTemplateBodyResult insertTemplateBody(
 
   final resolved = resolveBlock(state, sectionBlockId);
   if (resolved == null) {
-    throw StateError('insertTemplateBody: section block "$sectionBlockId" not found');
+    throw StateError(
+        'insertTemplateBody: section block "$sectionBlockId" not found');
   }
   if (resolved.kind != ResolvedBlockKind.main) {
-    throw StateError('insertTemplateBody: section block "$sectionBlockId" must be in main tree');
+    throw StateError(
+        'insertTemplateBody: section block "$sectionBlockId" must be in main tree');
   }
 
   final attrKey = _regionAttrKey[region];
@@ -88,7 +90,7 @@ InsertTemplateBodyResult insertTemplateBody(
     final merged = mergeAttrs(resolved.block.attrs, {
       attrKey: bodyRootId.value,
     });
-    
+
     final ySection = doc.getBlockMap(sectionBlockId.value);
     if (ySection != null) {
       ySection[BlockFields.attrs] = merged;

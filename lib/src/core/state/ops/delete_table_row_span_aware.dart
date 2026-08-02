@@ -62,7 +62,8 @@ OperationResult deleteTableRowSpanAware(State state, TableContext ctx) {
   });
 }
 
-DeleteTableRowSpanAwarePlan? planDeleteTableRowSpanAware(State state, TableContext ctx) {
+DeleteTableRowSpanAwarePlan? planDeleteTableRowSpanAware(
+    State state, TableContext ctx) {
   final grid = buildTableGrid(state, ctx.tableId);
   if (grid == null) return null;
   final caretList = grid.cells.where((c) => c.cellId == ctx.cellId);
@@ -84,10 +85,12 @@ DeleteTableRowSpanAwarePlan? planDeleteTableRowSpanAware(State state, TableConte
 
   for (final c in grid.cells) {
     if (c.gridRow < gr && c.gridRow + c.rowSpan - 1 >= gr) {
-      coveringBumps.add(_DeleteTableRowSpanAwareBump(c.cellId, _withRowSpan(state, c.cellId, c.rowSpan - 1)));
+      coveringBumps.add(_DeleteTableRowSpanAwareBump(
+          c.cellId, _withRowSpan(state, c.cellId, c.rowSpan - 1)));
     } else if (c.gridRow == gr) {
       if (c.rowSpan > 1) {
-        rehomed.add(_DeleteTableRowSpanAwareBump(c.cellId, _withRowSpan(state, c.cellId, c.rowSpan - 1)));
+        rehomed.add(_DeleteTableRowSpanAwareBump(
+            c.cellId, _withRowSpan(state, c.cellId, c.rowSpan - 1)));
       } else {
         removedCells.add(c.cellId);
       }
@@ -108,13 +111,17 @@ DeleteTableRowSpanAwarePlan? planDeleteTableRowSpanAware(State state, TableConte
     if (gr + 1 >= ctx.rowIds.length) return null;
     final reHomeRowId = ctx.rowIds[gr + 1];
     final rehomedIds = rehomed.map((r) => r.cellId).toSet();
-    final mergedCells = grid.cells.where((c) => c.gridRow == gr + 1 || rehomedIds.contains(c.cellId)).toList();
+    final mergedCells = grid.cells
+        .where((c) => c.gridRow == gr + 1 || rehomedIds.contains(c.cellId))
+        .toList();
     mergedCells.sort((a, b) => a.gridCol.compareTo(b.gridCol));
-    reHomeRow = _DeleteTableRowSpanAwareReHomeRow(reHomeRowId, mergedCells.map((c) => c.cellId).toList());
+    reHomeRow = _DeleteTableRowSpanAwareReHomeRow(
+        reHomeRowId, mergedCells.map((c) => c.cellId).toList());
   }
 
   final table = getBlock(state, ctx.tableId);
-  final headerAttrs = headerRowAttrsAfterRowEdit(state, ctx.tableId, RowEditOp.delete, gr);
+  final headerAttrs =
+      headerRowAttrsAfterRowEdit(state, ctx.tableId, RowEditOp.delete, gr);
 
   return DeleteTableRowSpanAwarePlan(
     tableId: ctx.tableId,
@@ -151,7 +158,8 @@ void deleteTableRowSpanAwareInTx(TwDoc doc, DeleteTableRowSpanAwarePlan plan) {
   for (final rh in plan.rehomed) {
     setBlockAttrsInTx(doc, rh.cellId, rh.newAttrs);
     if (plan.reHomeRow != null) {
-      doc.getBlockMap(rh.cellId.value)?['parentId'] = plan.reHomeRow!.rowId.value;
+      doc.getBlockMap(rh.cellId.value)?['parentId'] =
+          plan.reHomeRow!.rowId.value;
       doc.markDirty(rh.cellId.value);
     }
   }
@@ -164,7 +172,8 @@ void deleteTableRowSpanAwareInTx(TwDoc doc, DeleteTableRowSpanAwarePlan plan) {
       final yCell = doc.getBlockMap(cellId.value);
       if (yCell != null) {
         yCell['prevSiblingId'] = i == 0 ? null : cellIds[i - 1].value;
-        yCell['nextSiblingId'] = i == cellIds.length - 1 ? null : cellIds[i + 1].value;
+        yCell['nextSiblingId'] =
+            i == cellIds.length - 1 ? null : cellIds[i + 1].value;
         doc.markDirty(cellId.value);
       }
     }
@@ -177,11 +186,13 @@ void deleteTableRowSpanAwareInTx(TwDoc doc, DeleteTableRowSpanAwarePlan plan) {
   }
 
   if (plan.prevRowId != null) {
-    doc.getBlockMap(plan.prevRowId!.value)?['nextSiblingId'] = plan.nextRowId?.value;
+    doc.getBlockMap(plan.prevRowId!.value)?['nextSiblingId'] =
+        plan.nextRowId?.value;
     doc.markDirty(plan.prevRowId!.value);
   }
   if (plan.nextRowId != null) {
-    doc.getBlockMap(plan.nextRowId!.value)?['prevSiblingId'] = plan.prevRowId?.value;
+    doc.getBlockMap(plan.nextRowId!.value)?['prevSiblingId'] =
+        plan.prevRowId?.value;
     doc.markDirty(plan.nextRowId!.value);
   }
   if (plan.removingFirstRow || plan.removingLastRow) {
