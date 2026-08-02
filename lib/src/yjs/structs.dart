@@ -56,11 +56,30 @@ class YSkip extends YStruct {
   YSkip copyWith({required YId id, required int length}) => YSkip(id, length);
 }
 
+/// Yjs ContentDeleted payload (content ref 1).
+class YDeletedContent {
+  final int length;
+  const YDeletedContent(this.length);
+}
+
 class YItem extends YStruct {
   dynamic content;
   bool isDeleted;
+  final YId? origin;
+  final YId? rightOrigin;
+  final Object parent;
+  final String? parentSub;
 
-  YItem(super.id, super.length, this.content, {this.isDeleted = false});
+  YItem(
+    super.id,
+    super.length,
+    this.content, {
+    this.isDeleted = false,
+    this.origin,
+    this.rightOrigin,
+    this.parent = '',
+    this.parentSub,
+  });
 
   @override
   bool get deleted => isDeleted;
@@ -83,7 +102,12 @@ class YItem extends YStruct {
 
   @override
   YItem copyWith({required YId id, required int length}) =>
-      YItem(id, length, content, isDeleted: isDeleted);
+      YItem(id, length, content,
+          isDeleted: isDeleted,
+          origin: origin,
+          rightOrigin: rightOrigin,
+          parent: parent,
+          parentSub: parentSub);
 }
 
 class YStructStore {

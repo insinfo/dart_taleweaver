@@ -8,9 +8,9 @@ O objetivo deste plano é a portabilidade integral de `referencias/yjs-main` e `
 
 O código ativo está em `lib/src/`. A antiga árvore `lib/src` não é uma segunda implementação: ela foi substituída pela organização `core` e não deve ser reintroduzida como compatibilidade artificial. A fundação de estado já possui as operações Layer 3 e os componentes/cascade iniciais, mas a portabilidade ainda não está completa.
 
-**Última etapa concluída:** transações `TwDoc`/`applyOperation`, núcleo Yjs Dart local com relative positions e UndoManager de store baseline, render tree recursivo inicial, cascade com conversão tipada de lengths, cursor geometry-free, base de layout text (UAX #14 e UAX #9 em baseline), serialização JSON/HTML validada, reducer `EditorState` inicial, modelo geométrico/IFC/BFC/paginação/hit-test textual base do print, renderer Canvas/DOM baseline, mapeamento digital de input/teclas e entrypoint web compilável. Tudo está coberto pela suíte Dart e validação `dart compile js`; tabelas Unicode completas, editor integral, cascade/render incremental completo, canvas completo, reconciler digital e colaboração ainda permanecem pendentes.
+**Última etapa concluída:** transações `TwDoc`/`applyOperation`, núcleo Yjs Dart local com relative positions e UndoManager de store baseline, codecs de updates V1 e V2 byte a byte para `GC`, `Skip`, `ContentDeleted`, `ContentString` e `ContentAny` (incluindo canais RLE V2, DeleteSet diferencial e vetores equivalentes ao Yjs 13.6.18), render tree recursivo inicial, cascade com conversão tipada de lengths, cursor geometry-free, base de layout text (UAX #14 e UAX #9 em baseline), serialização JSON/HTML validada, reducer `EditorState` inicial, modelo geométrico/IFC/BFC/paginação/hit-test textual base do print, renderer Canvas/DOM baseline, mapeamento digital de input/teclas e entrypoint web compilável. Tudo está coberto pela suíte Dart e validação `dart compile js`; tabelas Unicode completas, editor integral, cascade/render incremental completo, canvas completo, reconciler digital e colaboração ainda permanecem pendentes.
 
-**Próxima etapa obrigatória:** substituir o codec interno pelo formato byte a byte de `referencias/yjs-main` (UpdateEncoder/Decoder V1 e V2), integrar operações do `YDoc` ao store, implementar resolução de conflitos/pending structs, snapshots, relative positions e UndoManager. O núcleo atual ainda não é compatível com colaboração JavaScript.
+**Próxima etapa obrigatória:** completar os content refs e metadados causais de `Item`, integrar a aplicação remota às estruturas compartilhadas do `YDoc` e implementar resolução de conflitos/pending structs. Depois disso, completar snapshots, relative positions e UndoManager sobre o store colaborativo. A interoperabilidade JavaScript atualmente cobre os wire formats V1/V2 do subconjunto explicitado acima; ainda não constitui colaboração completa.
 
 ---
 
@@ -804,7 +804,7 @@ O modelo de "dirty ids" é crucial: cada mutação captura quais blockIds foram 
 | 9. Print Layout Engine | ~30 | ~8.000 | 🔴 Alta (BFC/IFC/Pagination) |
 | 10. Canvas Rendering | ~10 | ~5.000 | 🔴 Alta (81KB renderer) |
 | 11. Editor Controller | ~5 | ~5.000 | 🔴 Alta (116KB controller) |
-| 12. Digital Backend | ~7 | ~2.000 | 🟡 Média (opcional) |
+| 12. Digital Backend | ~7 | ~2.000 | 🟡 Média  |
 | 13. Numbering + Footnotes | ~10 | ~1.500 | 🟢 Baixa |
 | 14. Demo App | ~3 | ~500 | 🟢 Baixa |
 | **TOTAL** | **~235** | **~50.300** | |

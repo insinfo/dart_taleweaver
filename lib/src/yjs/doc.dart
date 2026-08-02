@@ -116,21 +116,37 @@ class YDoc {
   /// Record a locally-created CRDT struct and advance this document's clock.
   /// Shared-type materialization and remote replay are separate steps; this
   /// method only records the causal struct in the document store.
-  YId recordStruct({required int length, required dynamic content}) {
+  YId recordStruct({
+    required int length,
+    required dynamic content,
+    Object parent = '',
+    String? parentSub,
+  }) {
     if (length <= 0) throw ArgumentError.value(length, 'length');
     if (_transactionDepth == 0) {
       late YId result;
       transact(() {
-        result = _recordStruct(length: length, content: content);
+        result = _recordStruct(
+            length: length,
+            content: content,
+            parent: parent,
+            parentSub: parentSub);
       });
       return result;
     }
-    return _recordStruct(length: length, content: content);
+    return _recordStruct(
+        length: length, content: content, parent: parent, parentSub: parentSub);
   }
 
-  YId _recordStruct({required int length, required dynamic content}) {
+  YId _recordStruct({
+    required int length,
+    required dynamic content,
+    required Object parent,
+    String? parentSub,
+  }) {
     final id = YId(clientId, store.getClock(clientId));
-    final struct = YItem(id, length, content);
+    final struct =
+        YItem(id, length, content, parent: parent, parentSub: parentSub);
     store.add(struct);
     _pendingStructs.add(struct);
     return id;
