@@ -4,6 +4,8 @@
 /// before and after the transaction, enabling full state reversal.
 library;
 
+import 'dart:convert';
+
 import 'block_id.dart';
 import 'block_position.dart';
 import 'tw_doc.dart';
@@ -35,43 +37,45 @@ class StackItem {
   final Map<String, Map<String, dynamic>> blocksBefore;
 
   /// Snapshot of blocks AFTER the mutation.
-  final Map<String, Map<String, dynamic>> blocksAfter;
+  Map<String, Map<String, dynamic>> blocksAfter;
 
   /// Snapshot of embed contents BEFORE the mutation.
   final Map<String, Map<String, dynamic>> embedContentsBefore;
 
   /// Snapshot of embed contents AFTER the mutation.
-  final Map<String, Map<String, dynamic>> embedContentsAfter;
+  Map<String, Map<String, dynamic>> embedContentsAfter;
 
   /// Snapshot of template contents BEFORE the mutation.
   final Map<String, Map<String, dynamic>> templateContentsBefore;
 
   /// Snapshot of template contents AFTER the mutation.
-  final Map<String, Map<String, dynamic>> templateContentsAfter;
+  Map<String, Map<String, dynamic>> templateContentsAfter;
 
   /// Snapshot of list defs BEFORE the mutation.
   final Map<String, Map<String, dynamic>> listDefsBefore;
 
   /// Snapshot of list defs AFTER the mutation.
-  final Map<String, Map<String, dynamic>> listDefsAfter;
+  Map<String, Map<String, dynamic>> listDefsAfter;
 
   /// Snapshot of comments BEFORE the mutation.
   final Map<String, Map<String, dynamic>> commentsBefore;
 
   /// Snapshot of comments AFTER the mutation.
-  final Map<String, Map<String, dynamic>> commentsAfter;
+  Map<String, Map<String, dynamic>> commentsAfter;
 
   /// Snapshot of suggestions BEFORE the mutation.
   final Map<String, Map<String, dynamic>> suggestionsBefore;
 
   /// Snapshot of suggestions AFTER the mutation.
-  final Map<String, Map<String, dynamic>> suggestionsAfter;
+  Map<String, Map<String, dynamic>> suggestionsAfter;
 
   /// Metadata map (analogous to Yjs StackItem.meta).
   final Map<Symbol, dynamic> meta = {};
 
   /// The transaction origin string, if any.
   final String? origin;
+  String? coalesceKey;
+  int? timestampMs;
 
   StackItem({
     required this.blocksBefore,
@@ -87,6 +91,8 @@ class StackItem {
     required this.suggestionsBefore,
     required this.suggestionsAfter,
     this.origin,
+    this.coalesceKey,
+    this.timestampMs,
   });
 }
 
@@ -102,6 +108,7 @@ const _selKey = Symbol('taleweaver.history.selectionEntry');
 /// Replaces Yjs Y.UndoManager. Each tracked operation captures the full
 /// state of all data maps before and after, enabling complete reversal.
 class TwUndoManager {
+  static const int defaultCoalesceTimeoutMs = 500;
   final TwDoc _doc;
 
   /// The undo stack.
@@ -126,6 +133,9 @@ class TwUndoManager {
 
   /// Whether we're currently capturing.
   bool _capturing = false;
+  String? _captureCoalesceKey;
+  int? _captureTimestampMs;
+  bool _captureBreak = false;
 
   TwUndoManager(
     this._doc, {
@@ -140,8 +150,10 @@ class TwUndoManager {
   bool get canRedo => _redoStack.isNotEmpty;
 
   /// Begin capturing a mutation. Call before the doc transaction.
-  void beginCapture() {
+  void beginCapture({String? coalesceKey, int? timestampMs}) {
     _capturing = true;
+    _captureCoalesceKey = coalesceKey;
+    _captureTimestampMs = timestampMs;
     _capturedBlocks = _doc.snapshotBlocks();
     _capturedEmbedContents = _doc.snapshotEmbedContents();
     _capturedTemplateContents = _doc.snapshotTemplateContents();
@@ -183,7 +195,19 @@ class TwUndoManager {
       suggestionsBefore: _capturedSuggestions!,
       suggestionsAfter: _doc.snapshotSuggestions(),
       origin: origin,
+      coalesceKey: _captureCoalesceKey,
+      timestampMs: _captureTimestampMs,
     );
+
+    if (_same(item.blocksBefore, item.blocksAfter) &&
+        _same(item.embedContentsBefore, item.embedContentsAfter) &&
+        _same(item.templateContentsBefore, item.templateContentsAfter) &&
+        _same(item.listDefsBefore, item.listDefsAfter) &&
+        _same(item.commentsBefore, item.commentsAfter) &&
+        _same(item.suggestionsBefore, item.suggestionsAfter)) {
+      _clearCapture();
+      return;
+    }
 
     // Weld selection entry.
     item.meta[_selKey] = SelectionEntry(
@@ -191,7 +215,29 @@ class TwUndoManager {
       after: selectionAfter,
     );
 
-    _undoStack.add(item);
+    final previous = _undoStack.isNotEmpty ? _undoStack.last : null;
+    final canMerge = previous != null &&
+        !_captureBreak &&
+        item.coalesceKey != null &&
+        item.coalesceKey != 'command' &&
+        previous.coalesceKey == item.coalesceKey &&
+        item.timestampMs != null &&
+        previous.timestampMs != null &&
+        item.timestampMs! - previous.timestampMs! < defaultCoalesceTimeoutMs;
+    if (canMerge) {
+      previous
+        ..blocksAfter = item.blocksAfter
+        ..embedContentsAfter = item.embedContentsAfter
+        ..templateContentsAfter = item.templateContentsAfter
+        ..listDefsAfter = item.listDefsAfter
+        ..commentsAfter = item.commentsAfter
+        ..suggestionsAfter = item.suggestionsAfter;
+      final before = (previous.meta[_selKey] as SelectionEntry?)?.before;
+      final after = (item.meta[_selKey] as SelectionEntry?)?.after;
+      previous.meta[_selKey] = SelectionEntry(before: before, after: after);
+    } else {
+      _undoStack.add(item);
+    }
     _redoStack.clear(); // New edit clears redo.
 
     // Trim if over limit.
@@ -272,6 +318,10 @@ class TwUndoManager {
     _redoStack.clear();
   }
 
+  void breakCoalescing() {
+    _captureBreak = true;
+  }
+
   void _clearCapture() {
     _capturedBlocks = null;
     _capturedEmbedContents = null;
@@ -279,6 +329,33 @@ class TwUndoManager {
     _capturedListDefs = null;
     _capturedComments = null;
     _capturedSuggestions = null;
+    _captureCoalesceKey = null;
+    _captureTimestampMs = null;
+    _captureBreak = false;
+  }
+
+  bool _same(Object a, Object b) =>
+      jsonEncode(_canonical(a)) == jsonEncode(_canonical(b));
+
+  Object? _canonical(Object? value) {
+    if (value == null || value is String || value is num || value is bool) {
+      return value;
+    }
+    if (value is Map) {
+      final entries = value.entries.toList()
+        ..sort((a, b) => a.key.toString().compareTo(b.key.toString()));
+      return <String, Object?>{
+        for (final entry in entries)
+          entry.key.toString(): _canonical(entry.value),
+      };
+    }
+    if (value is Iterable) return value.map(_canonical).toList();
+    try {
+      final dynamic json = (value as dynamic).toJson();
+      return _canonical(json);
+    } catch (_) {
+      return value.toString();
+    }
   }
 }
 

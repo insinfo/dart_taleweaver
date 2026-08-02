@@ -13,8 +13,13 @@ import 'state.dart';
 int compareBlocksInDocOrder(State state, BlockId idA, BlockId idB) {
   if (idA == idB) return 0;
 
-  final chainA = ancestorChain(state, idA);
-  final chainB = ancestorChain(state, idB);
+  final blockA = resolveBlock(state, idA)?.block;
+  final blockB = resolveBlock(state, idB)?.block;
+  if (blockA == null || blockB == null) {
+    throw StateError('compareBlocksInDocOrder: block not found');
+  }
+  final chainA = ancestorChain(state, blockA);
+  final chainB = ancestorChain(state, blockB);
 
   if (chainA.isEmpty)
     throw StateError('compareBlocksInDocOrder: block "$idA" not found');
@@ -39,10 +44,7 @@ int compareBlocksInDocOrder(State state, BlockId idA, BlockId idB) {
   if (i < 0) return -1;
   if (j < 0) return 1;
 
-  final lcaId = chainA[i + 1];
-  final lca = resolveBlock(state, lcaId)?.block;
-  if (lca == null)
-    throw StateError('compareBlocksInDocOrder: LCA "$lcaId" not found');
+  final lca = chainA[i + 1];
 
   var cursor = lca.firstChildId;
   while (cursor != null) {
@@ -53,7 +55,7 @@ int compareBlocksInDocOrder(State state, BlockId idA, BlockId idB) {
   }
 
   throw StateError(
-      'compareBlocksInDocOrder: branches not found in LCA "$lcaId" children');
+      'compareBlocksInDocOrder: branches not found in LCA "${lca.id}" children');
 }
 
 /// Compare two positions in document order.

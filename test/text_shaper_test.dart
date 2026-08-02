@@ -24,4 +24,16 @@ void main() {
     expect(measurer.measureWidth('abc', initialComputedStyle), 24);
     expect(measurer.measureHeight(initialComputedStyle), 16);
   });
+
+  test('measurer adapts back to a code-unit shaper', () {
+    final shaper = measurerToShaper(createMockMeasurer(8, 16));
+    final run = shaper.shape('ab', initialComputedStyle, Direction.ltr);
+    expect(run.clusters.map((c) => [c.start, c.end]), [
+      [0, 1],
+      [1, 2],
+    ]);
+    expect(run.clusters.map((c) => c.inlineAdvance), [8, 8]);
+    expect(run.unbreakableRunInlineSize, 16);
+    expect(shaper.measureFontMetrics(initialComputedStyle).ascent, 12.8);
+  });
 }

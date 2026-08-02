@@ -41,6 +41,27 @@ class History {
     _manager.beginCapture();
   }
 
+  /// Begin a capture that may merge with the previous entry when the action
+  /// class and timestamp are compatible (the editor's typing coalescing rule).
+  void beginCoalescedCapture({
+    Selection? selectionBefore,
+    String? origin,
+    required String coalesceKey,
+    required int timestampMs,
+  }) {
+    _selectionBefore = selectionBefore;
+    _pendingOrigin = origin;
+    _manager.beginCapture(
+      coalesceKey: coalesceKey,
+      timestampMs: timestampMs,
+    );
+  }
+
+  /// Force the next edit to start a new undo group.
+  void breakCoalescing() {
+    _manager.breakCoalescing();
+  }
+
   /// Commit the captured mutation. Call after the doc transaction.
   ///
   /// [selectionAfter] is the selection state after the edit.

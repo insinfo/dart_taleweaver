@@ -39,6 +39,11 @@ class TextItem extends InlineItem {
 
   const TextItem({required this.text, this.attrs = const {}});
 
+  Map<String, dynamic> toJson() => {
+        'text': text,
+        if (attrs.isNotEmpty) 'attrs': Map<String, dynamic>.of(attrs),
+      };
+
   @override
   String toString() => 'TextItem("$text", attrs: $attrs)';
 }
@@ -59,6 +64,12 @@ class EmbedItem extends InlineItem {
     this.attrs = const {},
     this.properties = const {},
   });
+
+  Map<String, dynamic> toJson() => {
+        'embed': embedType,
+        if (attrs.isNotEmpty) 'attrs': Map<String, dynamic>.of(attrs),
+        if (properties.isNotEmpty) 'props': Map<String, dynamic>.of(properties),
+      };
 
   @override
   String toString() => 'EmbedItem($embedType, attrs: $attrs)';

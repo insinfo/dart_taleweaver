@@ -146,7 +146,7 @@ ReparentPlan planReparentChildren(
     }
   }
 
-  final newParentChain = ancestorChain(state, newParentId);
+  final newParentChain = ancestorChain(state, newParent);
   final movedSet = blockIds.toSet();
   for (final ancestorId in newParentChain.map((b) => b.id)) {
     if (movedSet.contains(ancestorId)) {

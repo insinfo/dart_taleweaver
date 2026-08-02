@@ -26,9 +26,10 @@ class CrossReferenceProps {
 String resolveCrossReference(
   State state,
   Map<BlockId, CounterValue> numbering,
-  CrossReferenceProps props, [
+  CrossReferenceProps props, {
   SuggestionView view = SuggestionView.suggesting,
-]) {
+  Map<BlockId, int>? pageNumbers,
+}) {
   final targetId = props.targetId;
   final refMode = props.refMode;
 
@@ -37,7 +38,12 @@ String resolveCrossReference(
     return counter == null ? brokenCrossReferenceText : counter.formatted;
   }
 
-  // refMode == "text" (or fallback for "page" before we have pagination)
+  if (refMode == 'page') {
+    final page = pageNumbers?[targetId];
+    return page == null ? brokenCrossReferenceText : '${page + 1}';
+  }
+
+  // refMode == "text".
   final block = getBlock(state, targetId);
   if (block == null || block.inlineContent == null) {
     return brokenCrossReferenceText;

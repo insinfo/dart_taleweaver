@@ -62,6 +62,41 @@ class YDeletedContent {
   const YDeletedContent(this.length);
 }
 
+class YBinaryContent {
+  final List<int> bytes;
+  const YBinaryContent(this.bytes);
+}
+
+class YEmbedContent {
+  final dynamic value;
+  const YEmbedContent(this.value);
+}
+
+class YFormatContent {
+  final String key;
+  final dynamic value;
+  const YFormatContent(this.key, this.value);
+}
+
+class YTypeContent {
+  final int typeRef;
+  final String? key;
+  const YTypeContent(this.typeRef, {this.key});
+
+  @override
+  bool operator ==(Object other) =>
+      other is YTypeContent && other.typeRef == typeRef && other.key == key;
+
+  @override
+  int get hashCode => Object.hash(typeRef, key);
+}
+
+class YDocContent {
+  final String guid;
+  final dynamic options;
+  const YDocContent(this.guid, this.options);
+}
+
 class YItem extends YStruct {
   dynamic content;
   bool isDeleted;
@@ -113,6 +148,10 @@ class YItem extends YStruct {
 class YStructStore {
   final Map<int, List<YStruct>> clients = {};
   final YIdSet skips = YIdSet();
+  final Map<int, List<YStruct>> pending = {};
+
+  /// Delete ranges received before their corresponding structs.
+  final YIdSet pendingDeletes = YIdSet();
 
   YIdSet get deleteSet {
     final result = YIdSet();
@@ -120,6 +159,11 @@ class YStructStore {
       for (final struct in entry.value) {
         if (struct.deleted)
           result.add(entry.key, struct.id.clock, struct.length);
+      }
+    }
+    for (final entry in pendingDeletes.clients.entries) {
+      for (final range in entry.value) {
+        result.add(entry.key, range.clock, range.length);
       }
     }
     return result;
@@ -144,19 +188,178 @@ class YStructStore {
     final after =
         existing.id.clock + existing.length - (struct.id.clock + struct.length);
     final replacement = <YStruct>[
-      if (before > 0) existing.copyWith(id: existing.id, length: before),
+      if (before > 0) _sliceStruct(existing, 0, before),
       struct,
       if (after > 0)
-        existing.copyWith(
-          id: YId(struct.id.client, struct.id.clock + struct.length),
-          length: after,
-        ),
+        _sliceStruct(existing,
+            struct.id.clock + struct.length - existing.id.clock, after),
     ];
     structs
       ..removeAt(index)
       ..insertAll(index, replacement);
     skips.remove(struct.id.client, struct.id.clock, struct.length);
   }
+
+  /// Integrates a remote struct when its causal predecessor is available;
+  /// otherwise retains it until a later update fills the clock gap.
+  List<YStruct> addOrPend(YStruct struct) {
+    final existing = getIndex(struct.id);
+    if (existing.index >= 0) {
+      final value = existing.structs[existing.index];
+      final existingEnd = value.id.clock + value.length;
+      final incomingEnd = struct.id.clock + struct.length;
+      if (incomingEnd <= existingEnd) {
+        if (struct.id == value.id &&
+            incomingEnd == existingEnd &&
+            !_equivalent(value, struct)) {
+          if (value is YItem &&
+              struct is YItem &&
+              struct.deleted &&
+              !value.deleted &&
+              _equivalentIgnoringDeleted(value, struct)) {
+            value.delete();
+            return [value];
+          }
+          throw StateError('Conflicting struct payload at ${struct.id}');
+        }
+        // A shorter prefix is already represented by the integrated struct;
+        // its DeleteSet is applied separately below.
+        return const [];
+      }
+      if (struct.id.clock >= value.id.clock) {
+        final offset = existingEnd - struct.id.clock;
+        return addOrPend(
+            _sliceStruct(struct, offset, incomingEnd - existingEnd));
+      }
+      throw StateError('Conflicting struct at ${struct.id}');
+    }
+    if (getClock(struct.id.client) < struct.id.clock) {
+      final queue = pending.putIfAbsent(struct.id.client, () => []);
+      if (queue.any((value) => value.id == struct.id)) return const [];
+      queue.add(struct);
+      queue.sort((a, b) => a.id.clock.compareTo(b.id.clock));
+      return const [];
+    }
+    if (getClock(struct.id.client) > struct.id.clock) {
+      throw StateError('Overlapping struct at ${struct.id}');
+    }
+    final added = <YStruct>[struct];
+    add(struct);
+    final queue = pending[struct.id.client];
+    while (queue != null &&
+        queue.isNotEmpty &&
+        queue.first.id.clock == getClock(struct.id.client)) {
+      final next = queue.removeAt(0);
+      add(next);
+      added.add(next);
+    }
+    if (queue != null && queue.isEmpty) pending.remove(struct.id.client);
+    return added;
+  }
+
+  /// Marks an arbitrary clock range as deleted, fragmenting the containing
+  /// struct when the range only covers part of an item.
+  void deleteRange(YId id, int length) {
+    if (length <= 0) return;
+    var clock = id.clock;
+    var remaining = length;
+    while (remaining > 0) {
+      final entry = getIndex(YId(id.client, clock));
+      if (entry.index < 0) throw StateError('Unknown clock $clock');
+      final current = entry.structs[entry.index];
+      final offset = clock - current.id.clock;
+      final take = remaining.clamp(1, current.length - offset);
+      final before = offset;
+      final after = current.length - offset - take;
+      final replacement = <YStruct>[
+        if (before > 0) _sliceStruct(current, 0, before),
+        _deletedSlice(current, offset, take),
+        if (after > 0) _sliceStruct(current, offset + take, after),
+      ];
+      entry.structs
+        ..removeAt(entry.index)
+        ..insertAll(entry.index, replacement);
+      clock += take;
+      remaining -= take;
+    }
+  }
+
+  static YStruct _deletedSlice(YStruct struct, int offset, int length) {
+    if (struct is YGC)
+      return YGC(YId(struct.id.client, struct.id.clock + offset), length);
+    if (struct is YItem) {
+      final sliced = _sliceStruct(struct, offset, length) as YItem;
+      sliced.isDeleted = true;
+      return sliced;
+    }
+    return YGC(YId(struct.id.client, struct.id.clock + offset), length);
+  }
+
+  static YStruct _sliceStruct(YStruct struct, int offset, int length) {
+    final id = YId(struct.id.client, struct.id.clock + offset);
+    if (struct is YGC) return YGC(id, length);
+    if (struct is YSkip) return YSkip(id, length);
+    if (struct is YItem) {
+      final content = switch (struct.content) {
+        String value => value.substring(offset, offset + length),
+        List value => value.sublist(offset, offset + length),
+        YBinaryContent value =>
+          YBinaryContent(value.bytes.sublist(offset, offset + length)),
+        YDeletedContent() => YDeletedContent(length),
+        _ => throw StateError('Cannot split ${struct.content.runtimeType}'),
+      };
+      return YItem(id, length, content,
+          isDeleted: struct.isDeleted,
+          origin: struct.origin,
+          rightOrigin: struct.rightOrigin,
+          parent: struct.parent,
+          parentSub: struct.parentSub);
+    }
+    throw StateError('Cannot split ${struct.runtimeType}');
+  }
+
+  static bool _equivalent(YStruct left, YStruct right) {
+    if (left.runtimeType != right.runtimeType || left.length != right.length)
+      return false;
+    if (left is YGC && right is YGC || left is YSkip && right is YSkip) {
+      return true;
+    }
+    if (left is YItem && right is YItem) {
+      return left.isDeleted == right.isDeleted &&
+          left.parent == right.parent &&
+          left.parentSub == right.parentSub &&
+          left.origin == right.origin &&
+          left.rightOrigin == right.rightOrigin &&
+          _deepEqual(left.content, right.content);
+    }
+    return false;
+  }
+
+  static bool _equivalentIgnoringDeleted(YItem left, YItem right) =>
+      left.parent == right.parent &&
+      left.parentSub == right.parentSub &&
+      left.origin == right.origin &&
+      left.rightOrigin == right.rightOrigin &&
+      _deepEqual(left.content, right.content);
+
+  static bool _deepEqual(dynamic left, dynamic right) {
+    if (left is List && right is List) {
+      return left.length == right.length &&
+          List.generate(left.length, (i) => _deepEqual(left[i], right[i]))
+              .every((value) => value);
+    }
+    if (left is YDeletedContent && right is YDeletedContent)
+      return left.length == right.length;
+    if (left is YBinaryContent && right is YBinaryContent)
+      return _deepEqual(left.bytes, right.bytes);
+    if (left is YEmbedContent && right is YEmbedContent)
+      return _deepEqual(left.value, right.value);
+    return left == right;
+  }
+
+  /// Slices a struct for state-vector diff encoding.
+  static YStruct sliceForCodec(YStruct struct, int offset, int length) =>
+      _sliceStruct(struct, offset, length);
 
   YStruct get(YId id) {
     final structs = clients[id.client];

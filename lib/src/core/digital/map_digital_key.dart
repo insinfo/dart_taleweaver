@@ -6,12 +6,36 @@ EditorAction? mapDigitalKey(
     {required String key,
     bool ctrl = false,
     bool meta = false,
-    bool shift = false}) {
-  final command = ctrl || meta;
-  if (command && key.toLowerCase() == 'z')
-    return shift ? const RedoAction() : const UndoAction();
-  if (key == 'Backspace') return const DeleteBackwardAction();
-  if (key == 'Delete') return const DeleteForwardAction();
-  if (key == 'Enter') return const InsertTextAction('\n');
+    bool mac = false,
+    bool shift = false,
+    bool inListItem = false}) {
+  final command = mac ? meta : ctrl;
+  if (key == 'Escape') return const EscapeAction();
+  if (key == 'Tab') {
+    if (!inListItem) return shift ? null : const InsertTabAction();
+    return shift ? const ListOutdentAction() : const ListIndentAction();
+  }
+  // Editing keys are owned by the browser's beforeinput stream. Returning
+  // null here preserves the digital/layout boundary and avoids double edits.
+  if (key == 'Backspace' || key == 'Delete' || key == 'Enter') return null;
+  if (!command) return null;
+  switch (key.toLowerCase()) {
+    case 'z':
+      return shift ? const RedoAction() : const UndoAction();
+    case 'y':
+      return const RedoAction();
+    case 'b':
+      return const ToggleStyleAction('bold');
+    case 'i':
+      return const ToggleStyleAction('italic');
+    case 'u':
+      return const ToggleStyleAction('underline');
+    case 'x':
+      return shift ? const ToggleStyleAction('strikethrough') : null;
+    case 'a':
+      return const SelectAllAction();
+    case '\\':
+      return const ClearFormattingAction();
+  }
   return null;
 }

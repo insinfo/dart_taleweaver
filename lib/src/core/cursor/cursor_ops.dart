@@ -7,7 +7,9 @@ import '../state/state.dart';
 import '../state/block_traversal.dart';
 import 'grapheme_utils.dart';
 
-BlockId? _nextContentBlock(State state, BlockId id) {
+/// Finds the next leaf block that owns inline content, skipping structural
+/// containers in document order.
+BlockId? findNextContentBlock(State state, BlockId id) {
   var next = getBlock(state, id);
   while (next != null) {
     next = nextBlockInDocOrder(state, next);
@@ -16,7 +18,9 @@ BlockId? _nextContentBlock(State state, BlockId id) {
   return null;
 }
 
-BlockId? _prevContentBlock(State state, BlockId id) {
+/// Finds the previous leaf block that owns inline content, skipping
+/// structural containers in document order.
+BlockId? findPrevContentBlock(State state, BlockId id) {
   var previous = getBlock(state, id);
   while (previous != null) {
     previous = prevBlockInDocOrder(state, previous);
@@ -65,7 +69,7 @@ Position moveByCharacter(State state, Position position, String direction) {
   final total = inlineContentLength(content);
   if (direction == 'forward') {
     if (position.offset >= total) {
-      final next = _nextContentBlock(state, position.blockId);
+      final next = findNextContentBlock(state, position.blockId);
       return next == null ? position : Position(blockId: next, offset: 0);
     }
     return Position(
@@ -74,7 +78,7 @@ Position moveByCharacter(State state, Position position, String direction) {
     );
   }
   if (position.offset <= 0) {
-    final previous = _prevContentBlock(state, position.blockId);
+    final previous = findPrevContentBlock(state, position.blockId);
     if (previous == null) return position;
     final previousBlock = getBlock(state, previous)!;
     return Position(
@@ -96,7 +100,7 @@ Position moveByWord(State state, Position position, String direction) {
   final total = inlineContentLength(content);
   if (direction == 'forward') {
     if (position.offset >= total) {
-      final next = _nextContentBlock(state, position.blockId);
+      final next = findNextContentBlock(state, position.blockId);
       return next == null ? position : Position(blockId: next, offset: 0);
     }
     return Position(
@@ -105,16 +109,29 @@ Position moveByWord(State state, Position position, String direction) {
     );
   }
   if (position.offset <= 0) {
-    final previous = _prevContentBlock(state, position.blockId);
+    final previous = findPrevContentBlock(state, position.blockId);
     if (previous == null) return position;
     final previousBlock = getBlock(state, previous)!;
     final previousContent = previousBlock.inlineContent ?? InlineContent.empty;
-    var start = 0;
+    var base = 0;
+    var lastWordStart = 0;
+    var foundWord = false;
     for (final item in previousContent.items) {
-      if (item is TextItem)
-        start = start + prevWordBoundary(item.text, item.text.length);
+      if (item is TextItem) {
+        for (final segment in iterateWordSegments(item.text)) {
+          if (segment.isWordLike) {
+            lastWordStart = base + segment.start;
+            foundWord = true;
+          }
+        }
+        base += item.text.length;
+      } else {
+        // Embeds consume one logical offset and separate adjacent words.
+        base++;
+      }
     }
-    return Position(blockId: previous, offset: start);
+    return Position(
+        blockId: previous, offset: foundWord ? lastWordStart : base);
   }
   return Position(
     blockId: position.blockId,

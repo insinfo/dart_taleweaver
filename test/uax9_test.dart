@@ -21,4 +21,13 @@ void main() {
     expect(bidiMirror(0x28), 0x29);
     expect(canonicalBracketEquiv(0x2329), 0x3008);
   });
+
+  test('full Unicode mirror and bracket tables cover non-ASCII pairs', () {
+    expect(bidiMirror(0x00AB), 0x00BB);
+    expect(bidiMirror(0x2264), 0x2265);
+    expect(bracketPair(0x3008)?.paired, 0x3009);
+    expect(bracketPair(0x3008)?.opening, isTrue);
+    expect(bracketPair(0x3009)?.opening, isFalse);
+    expect(bracketPair(0x0041), isNull);
+  });
 }

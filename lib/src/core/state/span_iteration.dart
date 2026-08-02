@@ -70,22 +70,22 @@ Iterable<BlockRange> iterateSpan(State state, Span span) sync* {
 
   final maxSteps = blockCount(state) + 1;
   int steps = 0;
-  var currentId = nextBlockInDocOrder(state, normalized.anchor.blockId);
-  while (currentId != null && currentId != normalized.focus.blockId) {
+  var current = nextBlockInDocOrder(
+      state, resolveBlock(state, normalized.anchor.blockId)!.block);
+  while (current != null && current.id != normalized.focus.blockId) {
     if (++steps > maxSteps)
       throw StateError('iterateSpan: step bound exceeded');
-    final current = resolveBlock(state, currentId)?.block;
-    if (current != null && current.inlineContent != null) {
+    if (current.inlineContent != null) {
       yield BlockRange(
         current,
         0,
         inlineContentLength(current.inlineContent!),
       );
     }
-    currentId = nextBlockInDocOrder(state, currentId);
+    current = nextBlockInDocOrder(state, current);
   }
 
-  if (currentId != normalized.focus.blockId) {
+  if (current == null || current.id != normalized.focus.blockId) {
     throw StateError(
         'iterateSpan: walked to end of context without reaching focus block');
   }
@@ -120,14 +120,14 @@ Iterable<Block> iterateBlocksInSpan(State state, Span span) sync* {
 
   final maxSteps = blockCount(state) + 1;
   int steps = 0;
-  var currentId = nextBlockInDocOrder(state, normalized.anchor.blockId);
-  while (currentId != null) {
+  var current = nextBlockInDocOrder(
+      state, resolveBlock(state, normalized.anchor.blockId)!.block);
+  while (current != null) {
     if (++steps > maxSteps)
       throw StateError('iterateBlocksInSpan: step bound exceeded');
-    final current = resolveBlock(state, currentId)?.block;
-    if (current != null) yield current;
-    if (currentId == normalized.focus.blockId) return;
-    currentId = nextBlockInDocOrder(state, currentId);
+    yield current;
+    if (current.id == normalized.focus.blockId) return;
+    current = nextBlockInDocOrder(state, current);
   }
 
   throw StateError(

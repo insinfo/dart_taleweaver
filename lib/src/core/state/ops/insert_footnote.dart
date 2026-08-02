@@ -139,7 +139,7 @@ void _insertFootnoteBodyInTx(
     'nextSiblingId': null,
     'firstChildId': null,
     'lastChildId': null,
-    'inlineContent': {'items': []},
+    'inlineContent': InlineContent.empty,
   };
 }
 
@@ -159,7 +159,5 @@ void _insertAnchorInTx(TwDoc doc, _AnchorInsertPlan plan) {
         'insertFootnote: Block ${plan.blockId} not found in tree ${plan.kind}');
   }
 
-  blockObj['inlineContent'] = {
-    'items': plan.items.map((e) => (e as dynamic).toJson()).toList(),
-  };
+  blockObj['inlineContent'] = InlineContent(plan.items);
 }

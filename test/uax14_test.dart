@@ -16,4 +16,13 @@ void main() {
       [4, true],
     ]);
   });
+
+  test('UAX14 auxiliary East Asian and quotation sets match Unicode data', () {
+    expect(isEastAsianWide(0x4E00), isTrue);
+    expect(isEastAsianWide(0x3008), isTrue);
+    expect(isEastAsianWide(0x0028), isFalse);
+    expect(isPiQu(0x2018), isTrue);
+    expect(isPfQu(0x2019), isTrue);
+    expect(isEastAsianWide(-1), isFalse);
+  });
 }

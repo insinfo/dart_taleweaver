@@ -20,6 +20,9 @@ abstract class YUpdateEncoder {
   void writeLen(int length);
   void writeAny(dynamic value);
   void writeJson(dynamic value);
+  void writeBuf(List<int> bytes);
+  void writeKey(String key);
+  void writeTypeRef(int ref);
   void resetDeleteSetClock();
   void writeDeleteSetClock(int clock);
   void writeDeleteSetLength(int length);
@@ -43,6 +46,17 @@ class UpdateEncoderV1 implements YUpdateEncoder {
   void writeAny(dynamic value) => restEncoder.writeAny(value);
   void writeJson(dynamic value) => restEncoder.writeString(jsonEncode(value));
   @override
+  void writeBuf(List<int> bytes) {
+    restEncoder
+      ..writeVarUint(bytes.length)
+      ..writeBytes(bytes);
+  }
+
+  @override
+  void writeKey(String key) => restEncoder.writeString(key);
+  @override
+  void writeTypeRef(int ref) => restEncoder.writeVarUint(ref);
+  @override
   void resetDeleteSetClock() {}
   @override
   void writeDeleteSetClock(int clock) => restEncoder.writeVarUint(clock);
@@ -63,6 +77,9 @@ abstract class YUpdateDecoder {
   int readLen();
   dynamic readAny();
   dynamic readJson();
+  List<int> readBuf();
+  String readKey();
+  int readTypeRef();
   void resetDeleteSetClock();
   int readDeleteSetClock();
   int readDeleteSetLength();
@@ -86,6 +103,13 @@ class UpdateDecoderV1 implements YUpdateDecoder {
     final value = restDecoder.readString();
     return value == 'undefined' ? null : jsonDecode(value);
   }
+
+  @override
+  List<int> readBuf() => restDecoder.readBytes(restDecoder.readVarUint());
+  @override
+  String readKey() => restDecoder.readString();
+  @override
+  int readTypeRef() => restDecoder.readVarUint();
 
   @override
   void resetDeleteSetClock() {}
@@ -130,13 +154,28 @@ class UpdateEncoderV2 implements YUpdateEncoder {
   void writeString(String value) => _string.write(value);
   @override
   void writeParentInfo(bool isYKey) => _parentInfo.write(isYKey ? 1 : 0);
+  @override
   void writeTypeRef(int ref) => _typeRef.write(ref);
+  @override
+  void writeKey(String key) {
+    _keyClock.write(_nextKeyClock++);
+    _string.write(key);
+  }
+
+  int _nextKeyClock = 0;
   @override
   void writeLen(int length) => _length.write(length);
   @override
   void writeAny(dynamic value) => restEncoder.writeAny(value);
   @override
   void writeJson(dynamic value) => restEncoder.writeAny(value);
+  @override
+  void writeBuf(List<int> bytes) {
+    restEncoder
+      ..writeVarUint(bytes.length)
+      ..writeBytes(bytes);
+  }
+
   @override
   void resetDeleteSetClock() => _deleteSetClock = 0;
   @override
@@ -219,7 +258,9 @@ class UpdateDecoderV2 implements YUpdateDecoder {
   String readString() => _string.read();
   @override
   bool readParentInfo() => _parentInfo.read() == 1;
+  @override
   int readTypeRef() => _typeRef.read();
+  @override
   String readKey() {
     final clock = _keyClock.read();
     if (clock < _keys.length) return _keys[clock];
@@ -228,6 +269,8 @@ class UpdateDecoderV2 implements YUpdateDecoder {
     return key;
   }
 
+  @override
+  List<int> readBuf() => restDecoder.readBytes(restDecoder.readVarUint());
   @override
   int readLen() => _length.read();
   @override
@@ -335,8 +378,13 @@ class YStructUpdateCodec {
       case YItem():
         final contentRef = switch (struct.content) {
           YDeletedContent() => 1,
+          YBinaryContent() => 3,
           String() => 4,
+          YEmbedContent() => 5,
+          YFormatContent() => 6,
+          YTypeContent() => 7,
           List() => 8,
+          YDocContent() => 9,
           _ => throw StateError(
               'Unsupported Yjs item content ${struct.content.runtimeType}'),
         };
@@ -369,6 +417,8 @@ class YStructUpdateCodec {
                 'ContentDeleted length does not match item length');
           }
           encoder.writeLen(length);
+        } else if (struct.content case YBinaryContent(:final bytes)) {
+          encoder.writeBuf(bytes);
         } else if (struct.content case String value) {
           if (value.length != struct.length) {
             throw StateError('ContentString length does not match item length');
@@ -380,6 +430,24 @@ class YStructUpdateCodec {
           }
           encoder.writeLen(values.length);
           for (final value in values) encoder.writeAny(value);
+        } else if (struct.content case YEmbedContent(:final value)) {
+          encoder.writeJson(value);
+        } else if (struct.content
+            case YFormatContent(:final key, :final value)) {
+          encoder
+            ..writeKey(key)
+            ..writeJson(value);
+        } else if (struct.content
+            case YTypeContent(:final typeRef, :final key)) {
+          encoder.writeTypeRef(typeRef);
+          if (key != null && (typeRef == 3 || typeRef == 5)) {
+            encoder.writeKey(key);
+          }
+        } else if (struct.content
+            case YDocContent(:final guid, :final options)) {
+          encoder
+            ..writeString(guid)
+            ..writeAny(options);
         }
       default:
         throw StateError('Unsupported struct ${struct.runtimeType}');
@@ -402,13 +470,24 @@ class YStructUpdateCodec {
     }
     final content = switch (ref) {
       1 => YDeletedContent(decoder.readLen()),
+      3 => YBinaryContent(decoder.readBuf()),
       2 => _readJsonContent(decoder),
       4 => decoder.readString(),
+      5 => YEmbedContent(decoder.readJson()),
+      6 => YFormatContent(decoder.readKey(), decoder.readJson()),
+      7 => _readTypeContent(decoder),
       8 => _readAnyContent(decoder),
+      9 => YDocContent(decoder.readString(), decoder.readAny()),
       _ => throw FormatException('Unsupported Yjs item content ref $ref'),
     };
     final length = switch (content) {
       YDeletedContent(:final length) => length,
+      YBinaryContent() ||
+      YEmbedContent() ||
+      YFormatContent() ||
+      YTypeContent() ||
+      YDocContent() =>
+        1,
       String() => content.length,
       List() => content.length,
       _ => throw FormatException('Unsupported decoded content'),
@@ -418,6 +497,12 @@ class YStructUpdateCodec {
         rightOrigin: rightOrigin,
         parent: parent,
         parentSub: parentSub);
+  }
+
+  static YTypeContent _readTypeContent(YUpdateDecoder decoder) {
+    final typeRef = decoder.readTypeRef();
+    final key = (typeRef == 3 || typeRef == 5) ? decoder.readKey() : null;
+    return YTypeContent(typeRef, key: key);
   }
 
   static List<dynamic> _readAnyContent(YUpdateDecoder decoder) =>
@@ -472,10 +557,24 @@ class YStructUpdateCodec {
   }
 
   static List<int> merge(Iterable<List<int>> updates) {
+    return _merge(updates, v2: false);
+  }
+
+  /// Merge updates encoded with Yjs' channel-compressed V2 codec.
+  ///
+  /// This is intentionally a separate entry point, matching Yjs'
+  /// `mergeUpdatesV2`; V1 bytes and V2 bytes must never be decoded through the
+  /// other codec because their framing is different even when they carry the
+  /// same structs.
+  static List<int> mergeV2(Iterable<List<int>> updates) {
+    return _merge(updates, v2: true);
+  }
+
+  static List<int> _merge(Iterable<List<int>> updates, {required bool v2}) {
     final byId = <YId, YStruct>{};
     final deletes = YIdSet();
     for (final bytes in updates) {
-      final update = decode(bytes);
+      final update = v2 ? decodeV2(bytes) : decode(bytes);
       for (final struct in update.structs) {
         final old = byId[struct.id];
         if (old == null || struct.length > old.length) byId[struct.id] = struct;
@@ -491,7 +590,8 @@ class YStructUpdateCodec {
         final client = b.id.client.compareTo(a.id.client);
         return client == 0 ? a.id.clock.compareTo(b.id.clock) : client;
       });
-    return encode(YStructUpdate(structs: structs, deleteSet: deletes));
+    final merged = YStructUpdate(structs: structs, deleteSet: deletes);
+    return v2 ? encodeV2(merged) : encode(merged);
   }
 
   static void apply(YStructStore store, List<int> bytes) {
@@ -502,24 +602,73 @@ class YStructUpdateCodec {
     _applyDecoded(store, decodeV2(bytes));
   }
 
-  static void _applyDecoded(YStructStore store, YStructUpdate update) {
+  static void applyToDoc(YDoc doc, List<int> bytes,
+      {bool v2 = false, Object? origin}) {
+    final update = v2 ? decodeV2(bytes) : decode(bytes);
+    final added = _applyDecoded(doc.store, update);
+    doc.transact(() {
+      for (final struct in added) {
+        if (struct is! YItem) continue;
+        doc.applyRemoteItem(struct);
+        final ranges = List<YIdRange>.of(
+            doc.store.pendingDeletes.clients[struct.id.client] ?? const []);
+        for (final range in ranges) {
+          final start =
+              range.clock > struct.id.clock ? range.clock : struct.id.clock;
+          final end = range.end < struct.id.clock + struct.length
+              ? range.end
+              : struct.id.clock + struct.length;
+          if (start >= end) continue;
+          doc.applyRemoteDelete(struct,
+              offset: start - struct.id.clock, length: end - start);
+          doc.store.pendingDeletes.remove(struct.id.client, start, end - start);
+        }
+      }
+      for (final entry in update.deleteSet.clients.entries) {
+        for (final range in entry.value) {
+          var clock = range.clock;
+          while (clock < range.end) {
+            final struct = _tryGet(doc.store, YId(entry.key, clock));
+            if (struct == null) break;
+            final available = struct.id.clock + struct.length - clock;
+            final take =
+                available < range.end - clock ? available : range.end - clock;
+            doc.applyRemoteDelete(struct,
+                offset: clock - struct.id.clock, length: take);
+            clock += take;
+          }
+        }
+      }
+    }, origin: origin ?? 'remote');
+  }
+
+  static List<YStruct> _applyDecoded(YStructStore store, YStructUpdate update) {
+    final added = <YStruct>[];
     for (final struct in update.structs) {
       final existing = _tryGet(store, struct.id);
-      if (existing != null) {
-        if (existing.id == struct.id && existing.length == struct.length)
-          continue;
-        throw StateError('Conflicting struct at ${struct.id}');
+      if (existing != null &&
+          existing.id == struct.id &&
+          existing.length == struct.length) {
+        // Let the store verify duplicate payloads instead of silently
+        // accepting a same-clock struct with divergent semantic content.
+        added.addAll(store.addOrPend(struct));
+        continue;
       }
-      store.add(struct);
+      added.addAll(store.addOrPend(struct));
     }
     for (final entry in update.deleteSet.clients.entries) {
       for (final range in entry.value) {
         for (var clock = range.clock; clock < range.end; clock++) {
           final struct = _tryGet(store, YId(entry.key, clock));
-          if (struct is YItem) struct.delete();
+          if (struct is YItem) {
+            struct.delete();
+          } else {
+            store.pendingDeletes.add(entry.key, clock, 1);
+          }
         }
       }
     }
+    return added;
   }
 
   static YStruct? _tryGet(YStructStore store, YId id) {
@@ -529,23 +678,114 @@ class YStructUpdateCodec {
   }
 }
 
-List<int> encodeStateAsUpdate(YDoc doc) =>
-    YStructUpdateCodec.encode(YStructUpdate(structs: [
-      for (final structs in doc.store.clients.values) ...structs,
-    ], deleteSet: doc.store.deleteSet));
+List<int> encodeStateAsUpdate(YDoc doc, [YStateVector? target]) {
+  return YStructUpdateCodec.encode(_diffUpdate(doc, target));
+}
 
-List<int> encodeStateAsUpdateV2(YDoc doc) =>
-    YStructUpdateCodec.encodeV2(YStructUpdate(structs: [
-      for (final structs in doc.store.clients.values) ...structs,
-    ], deleteSet: doc.store.deleteSet));
+List<int> encodeStateAsUpdateV2(YDoc doc, [YStateVector? target]) {
+  return YStructUpdateCodec.encodeV2(_diffUpdate(doc, target));
+}
+
+/// Encode the state-vector frontier represented by an already encoded update.
+List<int> encodeStateVectorFromUpdate(List<int> update) {
+  return _stateVectorFromUpdate(YStructUpdateCodec.decode(update)).encode();
+}
+
+/// V2 counterpart of [encodeStateVectorFromUpdate].
+List<int> encodeStateVectorFromUpdateV2(List<int> update) {
+  return _stateVectorFromUpdate(YStructUpdateCodec.decodeV2(update)).encode();
+}
+
+YStateVector _stateVectorFromUpdate(YStructUpdate update) {
+  final vector = YStateVector();
+  for (final struct in update.structs) {
+    final end = struct.id.clock + struct.length;
+    if (end > vector[struct.id.client]) vector[struct.id.client] = end;
+  }
+  for (final entry in update.deleteSet.clients.entries) {
+    for (final range in entry.value) {
+      if (range.end > vector[entry.key]) vector[entry.key] = range.end;
+    }
+  }
+  return vector;
+}
+
+/// Return the portion of a V1 update strictly after [target].
+List<int> diffUpdate(List<int> update, YStateVector target) {
+  return YStructUpdateCodec.encode(
+      _diffDecoded(YStructUpdateCodec.decode(update), target));
+}
+
+/// V2 counterpart of [diffUpdate].
+List<int> diffUpdateV2(List<int> update, YStateVector target) {
+  return YStructUpdateCodec.encodeV2(
+      _diffDecoded(YStructUpdateCodec.decodeV2(update), target));
+}
+
+YStructUpdate _diffDecoded(YStructUpdate update, YStateVector target) {
+  final structs = <YStruct>[];
+  for (final struct in update.structs) {
+    final frontier = target[struct.id.client];
+    final end = struct.id.clock + struct.length;
+    if (end <= frontier) continue;
+    if (struct.id.clock < frontier) {
+      structs.add(YStructStore.sliceForCodec(
+          struct, frontier - struct.id.clock, end - frontier));
+    } else {
+      structs.add(struct);
+    }
+  }
+  final deletes = YIdSet();
+  for (final entry in update.deleteSet.clients.entries) {
+    final frontier = target[entry.key];
+    for (final range in entry.value) {
+      final start = range.clock < frontier ? frontier : range.clock;
+      if (start < range.end) {
+        deletes.add(entry.key, start, range.end - start);
+      }
+    }
+  }
+  return YStructUpdate(structs: structs, deleteSet: deletes);
+}
+
+YStructUpdate _diffUpdate(YDoc doc, YStateVector? target) {
+  final structs = <YStruct>[];
+  for (final values in doc.store.clients.values) {
+    for (final struct in values) {
+      if (target == null ||
+          struct.id.clock + struct.length > target[struct.id.client]) {
+        if (target == null || struct.id.clock >= target[struct.id.client]) {
+          structs.add(struct);
+        } else {
+          final offset = target[struct.id.client] - struct.id.clock;
+          structs.add(YStructStore.sliceForCodec(
+              struct, offset, struct.length - offset));
+        }
+      }
+    }
+  }
+  final deletes = YIdSet();
+  for (final entry in doc.store.deleteSet.clients.entries) {
+    final frontier = target?[entry.key] ?? 0;
+    for (final range in entry.value) {
+      final start = range.clock < frontier ? frontier : range.clock;
+      if (start < range.end) deletes.add(entry.key, start, range.end - start);
+    }
+  }
+  return YStructUpdate(structs: structs, deleteSet: deletes);
+}
 
 void applyUpdate(YDoc doc, List<int> update, [Object? origin]) {
-  YStructUpdateCodec.apply(doc.store, update);
+  YStructUpdateCodec.applyToDoc(doc, update, origin: origin);
 }
 
 void applyUpdateV2(YDoc doc, List<int> update, [Object? origin]) {
-  YStructUpdateCodec.applyV2(doc.store, update);
+  YStructUpdateCodec.applyToDoc(doc, update, v2: true, origin: origin);
 }
 
 List<int> mergeUpdates(Iterable<List<int>> updates) =>
     YStructUpdateCodec.merge(updates);
+
+/// V2 counterpart of [mergeUpdates], matching Yjs' `mergeUpdatesV2`.
+List<int> mergeUpdatesV2(Iterable<List<int>> updates) =>
+    YStructUpdateCodec.mergeV2(updates);

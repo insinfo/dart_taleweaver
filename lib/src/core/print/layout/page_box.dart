@@ -5,6 +5,15 @@ import 'layout_box.dart';
 
 class PageBox extends LayoutBox {
   final List<LayoutBox> children;
+
+  /// Named template-body slots. They remain nullable until the template
+  /// layout producer supplies the active section's header/footer bodies.
+  final BlockBox? headerSlot;
+  final BlockBox? footerSlot;
+
+  /// Named footnote band, kept out of [children] so painting, line collection
+  /// and hit-testing can distinguish body content from the bottom slot.
+  final BlockBox? footnoteSlot;
   final int pageIndex;
   final double effectiveTopInset;
   final double effectiveBottomInset;
@@ -24,6 +33,9 @@ class PageBox extends LayoutBox {
       super.computedStyle,
       super.usedStyle,
       this.children = const [],
+      this.headerSlot,
+      this.footerSlot,
+      this.footnoteSlot,
       required this.pageIndex,
       required this.effectiveTopInset,
       required this.effectiveBottomInset})
@@ -39,6 +51,9 @@ PageBox createPageBox(
     required Direction direction,
     required double containingInlineSize,
     required List<LayoutBox> children,
+    BlockBox? headerSlot,
+    BlockBox? footerSlot,
+    BlockBox? footnoteSlot,
     required int pageIndex,
     dynamic computedStyle,
     dynamic usedStyle,
@@ -68,6 +83,9 @@ PageBox createPageBox(
       computedStyle: computedStyle,
       usedStyle: usedStyle,
       children: List.unmodifiable(children),
+      headerSlot: headerSlot,
+      footerSlot: footerSlot,
+      footnoteSlot: footnoteSlot,
       pageIndex: pageIndex,
       effectiveTopInset: effectiveTopInset,
       effectiveBottomInset: effectiveBottomInset);

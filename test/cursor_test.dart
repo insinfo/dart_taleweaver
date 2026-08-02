@@ -3,8 +3,11 @@ import 'package:taleweaver/src/core/cursor/cursor_ops.dart';
 import 'package:taleweaver/src/core/cursor/grapheme_utils.dart';
 import 'package:taleweaver/src/core/state/block_id.dart';
 import 'package:taleweaver/src/core/state/block_position.dart';
+import 'package:taleweaver/src/core/state/inline_content.dart';
 import 'package:taleweaver/src/core/state/ops/insert_text.dart';
 import 'package:taleweaver/src/core/state/state.dart';
+import 'package:taleweaver/src/core/state/build_document_from_tree.dart';
+import 'package:taleweaver/src/core/state/list_defs.dart';
 
 void main() {
   test(
@@ -66,5 +69,87 @@ void main() {
     final selected = selectWord(state, Position(blockId: paragraph, offset: 7));
     expect(selected.anchor.offset, 6);
     expect(selected.focus.offset, 11);
+  });
+
+  test('word navigation uses global offsets across text runs and embeds', () {
+    final state = buildDocumentFromTree(
+      const ContainerBlockNode(
+        type: 'document',
+        children: [
+          LeafBlockNode(
+            type: 'paragraph',
+            inlineContent: InlineContent([
+              TextItem(text: 'first '),
+              EmbedItem(embedType: 'mention'),
+              TextItem(text: 'last word'),
+            ]),
+          ),
+          LeafBlockNode(
+            type: 'paragraph',
+            inlineContent: InlineContent([TextItem(text: 'next')]),
+          ),
+        ],
+      ),
+      const <String, ListDef>{},
+      createTestAllocator(),
+    );
+    final first = getBlock(state, state.rootId)!.firstChildId!;
+    final second = getBlock(state, first)!.nextSiblingId!;
+    expect(moveByWord(state, Position(blockId: second, offset: 0), 'backward'),
+        Position(blockId: first, offset: 12));
+  });
+
+  test('character movement treats embeds as one logical cursor unit', () {
+    final state = buildDocumentFromTree(
+      const ContainerBlockNode(
+        type: 'document',
+        children: [
+          LeafBlockNode(
+            type: 'paragraph',
+            inlineContent: InlineContent([
+              TextItem(text: 'ab'),
+              EmbedItem(embedType: 'footnote-anchor'),
+              TextItem(text: 'cd'),
+            ]),
+          ),
+        ],
+      ),
+      const <String, ListDef>{},
+      createTestAllocator('embed'),
+    );
+    final block = getBlock(state, state.rootId)!.firstChildId!;
+    expect(
+        moveByCharacter(state, Position(blockId: block, offset: 2), 'forward'),
+        Position(blockId: block, offset: 3));
+    expect(
+        moveByCharacter(state, Position(blockId: block, offset: 3), 'backward'),
+        Position(blockId: block, offset: 2));
+  });
+
+  test('character movement crosses adjacent leaf blocks at boundaries', () {
+    final state = buildDocumentFromTree(
+      const ContainerBlockNode(
+        type: 'document',
+        children: [
+          LeafBlockNode(
+              type: 'paragraph',
+              inlineContent: InlineContent([TextItem(text: 'hi')])),
+          LeafBlockNode(
+              type: 'paragraph',
+              inlineContent: InlineContent([TextItem(text: 'yo')])),
+        ],
+      ),
+      const <String, ListDef>{},
+      createTestAllocator('boundary'),
+    );
+    final first = getBlock(state, state.rootId)!.firstChildId!;
+    final second = getBlock(state, first)!.nextSiblingId!;
+    expect(
+        moveByCharacter(state, Position(blockId: first, offset: 2), 'forward'),
+        Position(blockId: second, offset: 0));
+    expect(
+        moveByCharacter(
+            state, Position(blockId: second, offset: 0), 'backward'),
+        Position(blockId: first, offset: 2));
   });
 }
