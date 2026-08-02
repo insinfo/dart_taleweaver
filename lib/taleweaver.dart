@@ -7,36 +7,47 @@ library taleweaver;
 // ---------------------------------------------------------------------------
 // URL Safety
 // ---------------------------------------------------------------------------
-export 'src/url_safety.dart';
+export 'src/core/url_safety.dart';
 
 // ---------------------------------------------------------------------------
 // Performance Tracing
 // ---------------------------------------------------------------------------
-export 'src/perf/perf_trace.dart';
+export 'src/core/perf/perf_trace.dart';
 
 // ---------------------------------------------------------------------------
 // Styles
 // ---------------------------------------------------------------------------
-export 'src/styles/color.dart';
-export 'src/styles/length.dart';
+export 'src/core/styles/color.dart';
+export 'src/core/styles/length.dart';
 
 // ---------------------------------------------------------------------------
 // State — types and access primitives
 // ---------------------------------------------------------------------------
-export 'src/state/block_id.dart';
-export 'src/state/attrs.dart';
-export 'src/state/inline_content.dart';
-export 'src/state/block.dart';
-export 'src/state/block_position.dart';
-export 'src/state/page_config.dart';
-export 'src/state/block_kinds.dart';
-export 'src/state/block_schema.dart';
-export 'src/state/tw_doc.dart';
-export 'src/state/tw_undo_manager.dart';
-export 'src/state/snapshot.dart';
-export 'src/state/state.dart';
-export 'src/state/block_traversal.dart';
-export 'src/state/document_order.dart';
-export 'src/state/history.dart';
-export 'src/state/list_defs.dart';
-export 'src/state/build_document_from_tree.dart';
+export 'src/core/state/block_id.dart';
+export 'src/core/state/attrs.dart';
+export 'src/core/state/inline_content.dart';
+export 'src/core/state/block.dart';
+export 'src/core/state/block_position.dart';
+export 'src/core/state/page_config.dart';
+export 'src/core/state/block_kinds.dart';
+export 'src/core/state/block_schema.dart';
+export 'src/core/state/tw_doc.dart';
+export 'src/core/state/tw_undo_manager.dart';
+export 'src/core/state/snapshot.dart';
+export 'src/core/state/state.dart';
+export 'src/core/state/block_traversal.dart';
+export 'src/core/state/document_order.dart';
+export 'src/core/state/history.dart';
+export 'src/core/state/list_defs.dart';
+export 'src/core/state/build_document_from_tree.dart';
+
+// ---------------------------------------------------------------------------
+// Yjs-compatible shared types (incremental port)
+// ---------------------------------------------------------------------------
+export 'src/yjs/doc.dart';
+export 'src/yjs/events.dart';
+export 'src/yjs/types.dart';
+export 'src/yjs/ids.dart';
+export 'src/yjs/encoding.dart';
+export 'src/yjs/id.dart';
+export 'src/yjs/structs.dart';

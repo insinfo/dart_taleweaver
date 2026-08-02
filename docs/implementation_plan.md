@@ -1,6 +1,16 @@
 # Portagem Taleweaver: TypeScript → Dart Puro
 
-Portar o motor de processador de texto **Taleweaver** (TypeScript, monorepo com 4 pacotes, ~80.000 linhas de código fonte em ~415 arquivos) para **Dart puro** usando apenas `web: ^1.1.1` e `html: ^0.15.4` como dependências (sem `dart:html`).
+Portar o motor de processador de texto **Taleweaver** (TypeScript, monorepo com 4 pacotes, ~80.000 linhas de código fonte em ~415 arquivos) para **Dart puro** usando apenas `web: ^1.1.1` e, se necessário, `html: ^0.15.4` como dependências (sem `dart:html`).
+
+O objetivo deste plano é a portabilidade integral de `referencias/yjs-main` e `referencias/taleweaver-main`, sem gambiarras, atalhos ou um MVP descartável. Cada fase só pode ser marcada como concluída quando a implementação Dart cobrir o contrato da referência e tiver testes equivalentes; itens ainda não portados permanecem explicitamente pendentes.
+
+### Estado da portabilidade
+
+O código ativo está em `lib/src/core`. A antiga árvore `lib/src` não é uma segunda implementação: ela foi substituída pela organização `core` e não deve ser reintroduzida como compatibilidade artificial. A fundação de estado já possui as operações Layer 3 e os componentes/cascade iniciais, mas a portabilidade ainda não está completa.
+
+**Última etapa concluída:** transações `TwDoc`/`applyOperation` com dirty tracking automático das três árvores de blocos, snapshots profundos e contrato de no-op validado por testes em `test/state_transaction_test.dart`; além do primeiro núcleo Yjs Dart (`YDoc`, tipos integrados Map/Array/Text, transações, observadores, `YIdSet` e codec varint), validado por `test/yjs_core_test.dart` e `test/yjs_ids_encoding_test.dart`.
+
+**Próxima etapa obrigatória:** completar o modelo CRDT de `referencias/yjs-main`: IDs integrados no store, structs Item/GC/Skip, resolução de conflitos, updates V1/V2, state vectors, snapshots, relative positions e UndoManager. O núcleo atual ainda é local e não deve ser usado como colaboração.
 
 ---
 
@@ -25,14 +35,13 @@ O core depende fortemente de **Yjs** (~13.6.18) para o modelo de dados (CRDT). T
 ## User Review Required
 
 > [!IMPORTANT]
-> **Substituição do Yjs**: O core TypeScript usa Yjs (uma biblioteca CRDT) como fundação de TODA a camada `state/`. Yjs não existe em Dart. As opções são:
-> 1. **Implementar um modelo de dados próprio** (Map/List simples + sistema de transações leve) que retenha a mesma API (get/set block, transactions, dirty tracking) — **recomendado** para MVP
-> 2. **Portar um subconjunto mínimo de Yjs** para Dart (Y.Map, Y.Doc, Y.UndoManager) — mais fiel ao original mas muito trabalhoso
+
+> 2. **Portar o Yjs completo** para Dart (Y.Map, Y.Doc, Y.UndoManager) — mais fiel ao original mas muito trabalhoso
 >
-> A opção 1 é recomendada: criar classes `TwDoc`, `TwMap`, `TwUndoManager` que implementam a interface necessária com `Map<String, dynamic>` simples + sistema de observadores.
+> A opção 1 não faz parte do objetivo atual. `TwDoc`/`TwUndoManager` são apenas a fundação transitória da portabilidade e não podem ser tratados como substitutos finais do Yjs. A implementação final deve preservar o comportamento CRDT necessário pelos consumidores de Taleweaver.
 
 > [!IMPORTANT]
-> **Escopo Inicial**: O projeto completo tem ~80.000 linhas. Recomenda-se portar em fases. O plano abaixo cobre o **MVP funcional** que reproduz a demo em https://yuzhenmi.github.io/taleweaver/ — um editor de texto rico no browser com:
+> **Escopo:** O projeto completo tem ~80.000 linhas. A execução será faseada por dependências, mas o alvo é o conjunto completo que reproduz a implementação de referência e a demo em https://yuzhenmi.github.io/taleweaver/ — um editor de texto rico no browser com:
 > - Edição de texto (inserir, deletar, split/merge parágrafos)
 > - Formatação inline (bold, italic, underline, font size/family, cores)
 > - Formatação de bloco (headings, alinhamento, listas, espaçamento)
@@ -45,7 +54,7 @@ O core depende fortemente de **Yjs** (~13.6.18) para o modelo de dados (CRDT). T
 > - Serialização JSON/HTML
 
 > [!WARNING]
-> **Funcionalidades adiadas (pós-MVP)**: Footnotes, comments, suggestions/change-tracking, cross-references, table of contents, PDF export, multi-column layout, collaboration (collab), accessibility tree, section breaks, headers/footers, hyphenation.
+> Nenhuma funcionalidade é descartada por ser difícil. Footnotes, comments, suggestions/change-tracking, cross-references, table of contents, PDF export, multi-column layout, collaboration, accessibility tree, section breaks, headers/footers e hyphenation são fases posteriores de implementação, não exclusões de escopo.
 
 ---
 
