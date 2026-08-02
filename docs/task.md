@@ -87,6 +87,7 @@
 
 ## Yjs — portabilidade incremental
 - `[x]` `YDoc` com tipos compartilhados integrados
+- `[x]` `YDoc` integrado ao client ID, clocks e `YStructStore`
 - `[x]` `YMap`, `YArray` e `YText` com operações básicas
 - `[x]` Transações, origem e observadores locais
 - `[x]` `YIdSet` com ranges, cobertura, gaps e remoção
@@ -94,8 +95,9 @@
 - `[x]` `YId` e state vectors com codec determinístico
 - `[x]` Structs `YItem`, `YGC`, `YSkip` e `YStructStore` com integridade
 - `[x]` Codec interno versionado, merge, aplicação e convergência de updates
+- `[x]` Operações locais de Array/Text geram structs e updates
 - `[x]` Store CRDT com `ID`, `Item`, `GC` e `Skip`
-- `[ ]` Updates V1/V2, merge/diff e state vectors
+- `[ ]` Updates V1/V2 e merge/diff byte-compatíveis com Yjs
 - `[ ]` Snapshots e relative positions
 - `[ ]` UndoManager compatível
 - `[ ]` Portar a suíte completa de `referencias/yjs-main/tests`

@@ -132,6 +132,7 @@ class YArray extends YType {
     for (final value in additions) {
       if (value is YType && doc != null) value.integrate(doc!, this, null);
     }
+    doc?.recordStruct(length: additions.length, content: additions);
     if (additions.isNotEmpty) _changed();
   }
 
@@ -168,6 +169,7 @@ class YText extends YType {
   void insert(int index, String value, [Map<String, dynamic>? attrs]) {
     if (index < 0 || index > length) throw RangeError.index(index, this);
     _text = _text.substring(0, index) + value + _text.substring(index);
+    doc?.recordStruct(length: value.length, content: value);
     _changed();
   }
 

@@ -1,4 +1,5 @@
 import 'package:test/test.dart';
+import 'package:taleweaver/src/yjs/doc.dart';
 import 'package:taleweaver/src/yjs/id.dart';
 import 'package:taleweaver/src/yjs/ids.dart';
 import 'package:taleweaver/src/yjs/structs.dart';
@@ -59,5 +60,30 @@ void main() {
     expect(left.deleteSet, right.deleteSet);
     left.checkIntegrity();
     right.checkIntegrity();
+  });
+
+  test('YDoc allocates client clocks and exports its local structs', () {
+    final doc = YDoc(clientId: 17);
+    doc.getArray('items').push(['a', 'b']);
+    doc.getText('text').insert(0, 'hi');
+
+    final update = YStructUpdateCodec.decode(encodeStateAsUpdate(doc));
+    expect(update.structs.map((value) => value.id), [
+      const YId(17, 0),
+      const YId(17, 2),
+    ]);
+    expect(doc.store.stateVector[17], 4);
+  });
+
+  test('public merge and apply update functions share the store contract', () {
+    final source = YDoc(clientId: 9);
+    source.getArray('items').push([1, 2]);
+    final target = YDoc(clientId: 10);
+
+    applyUpdate(target, encodeStateAsUpdate(source), 'remote');
+
+    expect(target.store.stateVector[9], 2);
+    expect(encodeStateAsUpdate(target),
+        mergeUpdates([encodeStateAsUpdate(source)]));
   });
 }

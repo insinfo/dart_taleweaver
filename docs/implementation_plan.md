@@ -8,7 +8,7 @@ O objetivo deste plano é a portabilidade integral de `referencias/yjs-main` e `
 
 O código ativo está em `lib/src/core`. A antiga árvore `lib/src` não é uma segunda implementação: ela foi substituída pela organização `core` e não deve ser reintroduzida como compatibilidade artificial. A fundação de estado já possui as operações Layer 3 e os componentes/cascade iniciais, mas a portabilidade ainda não está completa.
 
-**Última etapa concluída:** transações `TwDoc`/`applyOperation` com dirty tracking automático das três árvores de blocos, snapshots profundos e contrato de no-op validado por testes em `test/state_transaction_test.dart`; além do núcleo Yjs Dart local (`YDoc`, tipos integrados Map/Array/Text, transações, observadores, `YIdSet`, IDs, state vectors, structs, store e codec de updates interno), validado pela suíte Dart em `test/`.
+**Última etapa concluída:** transações `TwDoc`/`applyOperation` com dirty tracking automático das três árvores de blocos, snapshots profundos e contrato de no-op validado por testes em `test/state_transaction_test.dart`; além do núcleo Yjs Dart local (`YDoc`, tipos integrados Map/Array/Text, transações, observadores, `YIdSet`, IDs, state vectors, structs, store, clocks locais e codec de updates interno), validado pela suíte Dart em `test/`.
 
 **Próxima etapa obrigatória:** substituir o codec interno pelo formato byte a byte de `referencias/yjs-main` (UpdateEncoder/Decoder V1 e V2), integrar operações do `YDoc` ao store, implementar resolução de conflitos/pending structs, snapshots, relative positions e UndoManager. O núcleo atual ainda não é compatível com colaboração JavaScript.
 

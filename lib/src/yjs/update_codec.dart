@@ -3,6 +3,7 @@ library;
 import 'dart:convert';
 
 import 'encoding.dart';
+import 'doc.dart';
 import 'id.dart';
 import 'ids.dart';
 import 'structs.dart';
@@ -154,3 +155,15 @@ class YStructUpdateCodec {
     return index.structs[index.index];
   }
 }
+
+List<int> encodeStateAsUpdate(YDoc doc) =>
+    YStructUpdateCodec.encode(YStructUpdate(structs: [
+      for (final structs in doc.store.clients.values) ...structs,
+    ], deleteSet: doc.store.deleteSet));
+
+void applyUpdate(YDoc doc, List<int> update, [Object? origin]) {
+  YStructUpdateCodec.apply(doc.store, update);
+}
+
+List<int> mergeUpdates(Iterable<List<int>> updates) =>
+    YStructUpdateCodec.merge(updates);

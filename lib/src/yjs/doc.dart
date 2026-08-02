@@ -1,6 +1,8 @@
 library;
 
 import 'events.dart';
+import 'id.dart';
+import 'structs.dart';
 import 'types.dart';
 
 typedef YDocObserver = void Function(YTransaction transaction);
@@ -14,11 +16,17 @@ class YTransaction {
 }
 
 class YDoc {
+  static int _nextClientId = 1;
   final Map<String, YType> _share = {};
   final List<YDocObserver> _afterTransaction = [];
   final List<YEvent> _pendingEvents = [];
   int _transactionDepth = 0;
   Object? _origin;
+
+  final int clientId;
+  final YStructStore store = YStructStore();
+
+  YDoc({int? clientId}) : clientId = clientId ?? _nextClientId++;
 
   YType get(String name) => _share.putIfAbsent(name, () {
         final type = YMap();
@@ -91,5 +99,15 @@ class YDoc {
     } else {
       _pendingEvents.add(event);
     }
+  }
+
+  /// Record a locally-created CRDT struct and advance this document's clock.
+  /// Shared-type materialization and remote replay are separate steps; this
+  /// method only records the causal struct in the document store.
+  YId recordStruct({required int length, required dynamic content}) {
+    if (length <= 0) throw ArgumentError.value(length, 'length');
+    final id = YId(clientId, store.getClock(clientId));
+    store.add(YItem(id, length, content));
+    return id;
   }
 }
