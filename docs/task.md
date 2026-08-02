@@ -146,6 +146,7 @@
 ## Fase 12 — Digital backend
 - `[x]` Conversão inicial de ComputedStyle para CSS inline
 - `[x]` Ponte inicial RenderNode -> `package:web` DOM
+- `[x]` Mapeamento puro de beforeinput e atalhos digitais para EditorAction
 - `[ ]` Render State/RenderNode para `package:web` DOM
 - `[ ]` Reconciler incremental e selection bridge
 - `[ ]` beforeinput/key mapping e controller contenteditable
