@@ -151,5 +151,10 @@ double _resolveFontSize(ComputedStyle cs) {
   // So it's already resolved! Oh wait, in TS ComputedStyle.fontSize is a number, but BEFORE flattenLengths, it might be a Length from `composeComputed`!
   // In our dart composeComputed, we kept it dynamic. Wait, `ComputedStyle.fontSize` is typed as `double`. So if `composeComputed` assigned a Length to `ComputedStyle`, it would throw at runtime!
   // Let me check my `ComputedStyle` class!
-  return v;
+  if (v is num) return v.toDouble();
+  if (v is PxLength) return v.value;
+  if (v is EmLength) return v.value;
+  return initialComputedStyle.fontSize is num
+      ? (initialComputedStyle.fontSize as num).toDouble()
+      : 16;
 }

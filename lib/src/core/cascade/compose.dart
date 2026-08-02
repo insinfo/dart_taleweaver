@@ -5,8 +5,25 @@
 library;
 
 import '../styles/computed_style.dart';
+import '../styles/length.dart';
 import '../styles/property_meta.dart';
 import '../styles/style.dart';
+
+ComputedLength _toComputedLength(dynamic value) {
+  if (value is ComputedLength) return value;
+  if (value is PxLength) return ComputedPxLength(value.value);
+  if (value is PercentLength) return ComputedPercentLength(value.value);
+  if (value is EmLength) return ComputedPxLength(value.value);
+  return const ComputedPxLength(0);
+}
+
+ComputedLengthOrAuto _toComputedLengthOrAuto(dynamic value) {
+  if (value is ComputedLengthOrAuto) return value;
+  if (value is AutoLength || value == null) return const ComputedAutoLength();
+  if (value is LengthValue)
+    return ComputedLengthValue(_toComputedLength(value.value));
+  return ComputedLengthValue(_toComputedLength(value));
+}
 
 ComputedStyle composeComputed(Style specified, ComputedStyle? parent) {
   return ComputedStyle(
@@ -50,38 +67,38 @@ ComputedStyle composeComputed(Style specified, ComputedStyle? parent) {
         (propertyMeta['boxSizing']!.inherits && parent != null
             ? parent.boxSizing
             : initialComputedStyle.boxSizing),
-    marginBlockStart: specified.marginBlockStart ??
+    marginBlockStart: _toComputedLengthOrAuto(specified.marginBlockStart ??
         (propertyMeta['marginBlockStart']!.inherits && parent != null
             ? parent.marginBlockStart
-            : initialComputedStyle.marginBlockStart),
-    marginBlockEnd: specified.marginBlockEnd ??
+            : initialComputedStyle.marginBlockStart)),
+    marginBlockEnd: _toComputedLengthOrAuto(specified.marginBlockEnd ??
         (propertyMeta['marginBlockEnd']!.inherits && parent != null
             ? parent.marginBlockEnd
-            : initialComputedStyle.marginBlockEnd),
-    marginInlineStart: specified.marginInlineStart ??
+            : initialComputedStyle.marginBlockEnd)),
+    marginInlineStart: _toComputedLengthOrAuto(specified.marginInlineStart ??
         (propertyMeta['marginInlineStart']!.inherits && parent != null
             ? parent.marginInlineStart
-            : initialComputedStyle.marginInlineStart),
-    marginInlineEnd: specified.marginInlineEnd ??
+            : initialComputedStyle.marginInlineStart)),
+    marginInlineEnd: _toComputedLengthOrAuto(specified.marginInlineEnd ??
         (propertyMeta['marginInlineEnd']!.inherits && parent != null
             ? parent.marginInlineEnd
-            : initialComputedStyle.marginInlineEnd),
-    paddingBlockStart: specified.paddingBlockStart ??
+            : initialComputedStyle.marginInlineEnd)),
+    paddingBlockStart: _toComputedLength(specified.paddingBlockStart ??
         (propertyMeta['paddingBlockStart']!.inherits && parent != null
             ? parent.paddingBlockStart
-            : initialComputedStyle.paddingBlockStart),
-    paddingBlockEnd: specified.paddingBlockEnd ??
+            : initialComputedStyle.paddingBlockStart)),
+    paddingBlockEnd: _toComputedLength(specified.paddingBlockEnd ??
         (propertyMeta['paddingBlockEnd']!.inherits && parent != null
             ? parent.paddingBlockEnd
-            : initialComputedStyle.paddingBlockEnd),
-    paddingInlineStart: specified.paddingInlineStart ??
+            : initialComputedStyle.paddingBlockEnd)),
+    paddingInlineStart: _toComputedLength(specified.paddingInlineStart ??
         (propertyMeta['paddingInlineStart']!.inherits && parent != null
             ? parent.paddingInlineStart
-            : initialComputedStyle.paddingInlineStart),
-    paddingInlineEnd: specified.paddingInlineEnd ??
+            : initialComputedStyle.paddingInlineStart)),
+    paddingInlineEnd: _toComputedLength(specified.paddingInlineEnd ??
         (propertyMeta['paddingInlineEnd']!.inherits && parent != null
             ? parent.paddingInlineEnd
-            : initialComputedStyle.paddingInlineEnd),
+            : initialComputedStyle.paddingInlineEnd)),
     borderBlockStartWidth: specified.borderBlockStartWidth ??
         (propertyMeta['borderBlockStartWidth']!.inherits && parent != null
             ? parent.borderBlockStartWidth
@@ -178,10 +195,10 @@ ComputedStyle composeComputed(Style specified, ComputedStyle? parent) {
         (propertyMeta['textAlign']!.inherits && parent != null
             ? parent.textAlign
             : initialComputedStyle.textAlign),
-    textIndent: specified.textIndent ??
+    textIndent: _toComputedLength(specified.textIndent ??
         (propertyMeta['textIndent']!.inherits && parent != null
             ? parent.textIndent
-            : initialComputedStyle.textIndent),
+            : initialComputedStyle.textIndent)),
     textWrap: specified.textWrap ??
         (propertyMeta['textWrap']!.inherits && parent != null
             ? parent.textWrap

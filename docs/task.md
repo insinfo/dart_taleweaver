@@ -162,7 +162,9 @@
 ## Fase 6 — Render tree
 - `[x]` RenderState recursivo via ComponentRegistry
 - `[x]` ElementBox/TextBox para blocos e inline content
+- `[x]` Pipeline render -> cascade e cascade incremental inicial
 - `[ ]` Cascade completo, incremental render, footnotes, TOC e cross-references
+- `[x]` Conversão tipada de Length -> ComputedLength no compose/flatten cascade
 
 ## Fase 14 — Demo web
 - `[x]` `web/index.html`
