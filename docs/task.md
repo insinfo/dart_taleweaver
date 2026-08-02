@@ -139,5 +139,11 @@
 - `[ ]` Cursor geométrico, hit-test e selection geometry
 - `[x]` IFC/BFC baseline para texto medido por clusters e quebra por largura
 
+## Fase 12 — Digital backend
+- `[x]` Conversão inicial de ComputedStyle para CSS inline
+- `[ ]` Render State/RenderNode para `package:web` DOM
+- `[ ]` Reconciler incremental e selection bridge
+- `[ ]` beforeinput/key mapping e controller contenteditable
+
 ## Fase 4 — Componentes
 - `[ ]` `components` e `registry`
