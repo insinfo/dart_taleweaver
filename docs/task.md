@@ -149,6 +149,10 @@
 - `[ ]` Reconciler incremental e selection bridge
 - `[ ]` beforeinput/key mapping e controller contenteditable
 
+## Fase 10 — Canvas renderer
+- `[x]` Pintura recursiva de PageBox/BlockBox/LineBox/TextRunBox via `package:web`
+- `[ ]` Estilos, imagens, seleção, cursor, cache e rendering completo
+
 ## Fase 4 — Componentes
 - `[ ]` `components` e `registry`
 

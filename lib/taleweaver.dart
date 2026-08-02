@@ -78,6 +78,7 @@ export 'src/core/print/layout/page_config.dart';
 export 'src/core/print/layout/ifc.dart';
 export 'src/core/print/layout/bfc.dart';
 export 'src/core/print/layout/pagination.dart';
+export 'src/core/print/canvas_renderer.dart';
 export 'src/core/digital/computed_style_to_css.dart';
 export 'src/core/digital/render_to_dom.dart';
 

@@ -24,11 +24,13 @@ file:///C:/MyDartProjects/taleweaver/lib/src/core/layout/uax9/index.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/core/layout/uax9/mirror.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/core/layout/uax9/reorder.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/core/perf/perf_trace.dart
+file:///C:/MyDartProjects/taleweaver/lib/src/core/print/canvas_renderer.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/core/print/layout/bfc.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/core/print/layout/ifc.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/core/print/layout/layout_box.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/core/print/layout/page_box.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/core/print/layout/page_config.dart
+file:///C:/MyDartProjects/taleweaver/lib/src/core/print/layout/pagination.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/core/render/layout_metadata.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/core/render/render_node.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/core/state/attrs.dart
@@ -65,6 +67,7 @@ file:///C:/MyDartProjects/taleweaver/lib/src/yjs/encoding.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/yjs/events.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/yjs/id.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/yjs/ids.dart
+file:///C:/MyDartProjects/taleweaver/lib/src/yjs/relative_position.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/yjs/structs.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/yjs/types.dart
 file:///C:/MyDartProjects/taleweaver/lib/src/yjs/update_codec.dart
