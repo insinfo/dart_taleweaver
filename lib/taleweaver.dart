@@ -70,6 +70,13 @@ export 'src/core/editor/editor_action.dart';
 export 'src/core/editor/editor_state.dart';
 
 // ---------------------------------------------------------------------------
+// Print layout geometry
+// ---------------------------------------------------------------------------
+export 'src/core/print/layout/layout_box.dart';
+export 'src/core/print/layout/page_box.dart';
+export 'src/core/print/layout/page_config.dart';
+
+// ---------------------------------------------------------------------------
 // Yjs-compatible shared types (incremental port)
 // ---------------------------------------------------------------------------
 export 'src/yjs/doc.dart';

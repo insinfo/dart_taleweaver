@@ -132,5 +132,11 @@
 - `[ ]` Portar todas as ações e coalescing da referência
 - `[ ]` Paste, formatting, tabelas, imagens, comentários e sugestões
 
+## Fase 9 — Print layout geometry
+- `[x]` LayoutBox, BlockBox, TextRunBox, LineBox e PageBox base
+- `[x]` Page size, margins, page gap e content geometry
+- `[ ]` BFC/IFC, fragmentation, pagination e table layout
+- `[ ]` Cursor geométrico, hit-test e selection geometry
+
 ## Fase 4 — Componentes
 - `[ ]` `components` e `registry`
