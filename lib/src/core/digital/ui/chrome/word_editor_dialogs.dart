@@ -962,5 +962,4 @@ extension _TaleweaverEditorDialogs on TaleweaverEditor {
     _dialog = null;
     dialog?.remove();
   }
-
 }
