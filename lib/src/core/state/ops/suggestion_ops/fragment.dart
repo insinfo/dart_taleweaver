@@ -2,6 +2,7 @@
 library;
 
 import '../../block_compare.dart';
+import '../../attrs.dart';
 import '../../block_id.dart';
 import '../../block_position.dart';
 import '../../inline_content.dart';
@@ -76,7 +77,7 @@ ReplaceFragmentPlan planReplaceWithSuggestedFragment(
     List<SiblingBlockInit> fragment,
     ReplaceSuggestionInput input,
     IdAllocator allocator,
-    [Map<String, dynamic>? customEquals]) {
+    [Map<String, AttrEqualsFn>? customEquals]) {
   final at = spanStart(state, span);
   final resolved = resolveBlock(state, at.blockId);
   if (resolved == null || resolved.block.inlineContent == null) {
@@ -296,7 +297,7 @@ ReplaceFragmentPlan planReplaceWithSuggestedFragment(
       id: nbId,
       kind: kind,
       type: fragLine.type,
-      attrs: fragLine.attrs,
+      attrs: fragLine.attrs ?? const {},
       items: blockItems,
       parentId: parentId,
       prevSiblingId: prevSiblingId,
@@ -330,7 +331,7 @@ ReplaceFragmentResult replaceWithSuggestedFragment(
     List<SiblingBlockInit> fragment,
     ReplaceSuggestionInput input,
     IdAllocator allocator,
-    [Map<String, dynamic>? customEquals]) {
+    [Map<String, AttrEqualsFn>? customEquals]) {
   final plan = planReplaceWithSuggestedFragment(
       state, span, fragment, input, allocator, customEquals);
 
@@ -399,7 +400,7 @@ void _applySurgicalFragmentWrite(
   TwDoc doc,
   ResolveWrite w,
   String author,
-  Map<String, dynamic>? customEquals,
+  Map<String, AttrEqualsFn>? customEquals,
   InsertItemsPlan? insertPlan,
 ) {
   if (w.deletionId != null && w.rangeStart < w.rangeEnd) {
@@ -449,7 +450,7 @@ ReplaceFragmentResult insertFragmentAsSuggestion(
     List<SiblingBlockInit> fragment,
     SuggestionMintInput input,
     IdAllocator allocator,
-    [Map<String, dynamic>? customEquals]) {
+    [Map<String, AttrEqualsFn>? customEquals]) {
   return replaceWithSuggestedFragment(
     state,
     createSpan(at, at),

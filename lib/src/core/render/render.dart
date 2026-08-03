@@ -2,6 +2,7 @@ library;
 
 import '../components/component_definition.dart';
 import '../components/component_registry.dart';
+import '../cascade/attr_registry.dart';
 import '../state/inline_content.dart';
 import '../state/page_field.dart';
 import '../state/block.dart';
@@ -14,7 +15,6 @@ import '../numbering/list_collector.dart';
 import '../state/list_defs.dart';
 import '../styles/format_counter.dart';
 import '../styles/property_meta.dart';
-import '../styles/style.dart';
 import 'block_view.dart';
 import 'footnote_numbering.dart';
 import 'layout_metadata.dart';
@@ -78,9 +78,11 @@ Map<BlockId, CounterValue> _buildCounters(State state) {
 
 RenderOutput renderState(State state, ComponentRegistry registry,
     {SuggestionView suggestionView = SuggestionView.suggesting,
-    Map<BlockId, int>? pageNumbers}) {
+    Map<BlockId, int>? pageNumbers,
+    AttrRegistry? attrs}) {
   final context = _RenderContext(state, suggestionView, pageNumbers);
-  return RenderOutput(_renderBlock(state, state.rootId, registry, context));
+  return RenderOutput(_renderBlock(
+      state, state.rootId, registry, context, attrs ?? attrRegistry));
 }
 
 /// Render a footnote body rooted in `embedContents`.
@@ -90,10 +92,11 @@ RenderOutput renderState(State state, ComponentRegistry registry,
 /// style context without accidentally including other embed trees.
 RenderOutput renderFootnoteBody(
     State state, BlockId bodyRootId, ComponentRegistry registry,
-    {SuggestionView suggestionView = SuggestionView.suggesting}) {
+    {SuggestionView suggestionView = SuggestionView.suggesting,
+    AttrRegistry? attrs}) {
   final context = _RenderContext(state, suggestionView, null);
-  return RenderOutput(
-      _renderTreeBlock(state, bodyRootId, registry, context, getEmbedContent));
+  return RenderOutput(_renderTreeBlock(state, bodyRootId, registry, context,
+      getEmbedContent, attrs ?? attrRegistry));
 }
 
 /// Render a header/footer body rooted in `templateContents`.
@@ -106,20 +109,26 @@ RenderOutput renderTemplateBody(
     {SuggestionView suggestionView = SuggestionView.suggesting,
     Map<BlockId, int>? pageNumbers,
     int? pageNumber,
-    int? pageCount}) {
+    int? pageCount,
+    AttrRegistry? attrs}) {
   final context = _RenderContext(state, suggestionView, pageNumbers,
       pageNumber: pageNumber, pageCount: pageCount);
-  return RenderOutput(_renderTreeBlock(
-      state, bodyRootId, registry, context, getTemplateContent));
+  return RenderOutput(_renderTreeBlock(state, bodyRootId, registry, context,
+      getTemplateContent, attrs ?? attrRegistry));
 }
 
 RenderNode _renderBlock(State state, dynamic id, ComponentRegistry registry,
-    _RenderContext context) {
-  return _renderTreeBlock(state, id, registry, context, getBlock);
+    _RenderContext context, AttrRegistry attrs) {
+  return _renderTreeBlock(state, id, registry, context, getBlock, attrs);
 }
 
-RenderNode _renderTreeBlock(State state, dynamic id, ComponentRegistry registry,
-    _RenderContext context, Block? Function(State, BlockId) readBlock) {
+RenderNode _renderTreeBlock(
+    State state,
+    dynamic id,
+    ComponentRegistry registry,
+    _RenderContext context,
+    Block? Function(State, BlockId) readBlock,
+    AttrRegistry attrs) {
   final block = readBlock(state, id as BlockId);
   if (block == null) throw StateError('render: block "$id" not found');
   final definition = registry.get(block.type);
@@ -129,8 +138,8 @@ RenderNode _renderTreeBlock(State state, dynamic id, ComponentRegistry registry,
   if (block.firstChildId != null) {
     var child = readBlock(state, block.firstChildId!);
     while (child != null) {
-      children
-          .add(_renderTreeBlock(state, child.id, registry, context, readBlock));
+      children.add(_renderTreeBlock(
+          state, child.id, registry, context, readBlock, attrs));
       child = child.nextSiblingId == null
           ? null
           : readBlock(state, child.nextSiblingId!);
@@ -140,15 +149,21 @@ RenderNode _renderTreeBlock(State state, dynamic id, ComponentRegistry registry,
     for (var index = 0; index < block.inlineContent!.items.length; index++) {
       final item = block.inlineContent!.items[index];
       if (!itemVisibleInView(item, context.suggestionView)) continue;
+      final itemStyle = attrs.applyAll(item.attrs);
       if (item is TextItem) {
-        children.add(createTextBox('${block.id.value}/inline/$index',
-            const Style(), item.text, item.attrs['link'] as String?));
+        final rawLink = item.attrs['link'];
+        children.add(createTextBox(
+          '${block.id.value}/inline/$index',
+          itemStyle,
+          item.text,
+          rawLink is String ? rawLink : null,
+        ));
       } else if (item is EmbedItem) {
         final text = context.inlineEmbedText(item);
         children.add(text == null
             ? createElementBox(
                 '${block.id.value}/inline/$index',
-                const Style(),
+                itemStyle,
                 const [],
                 LayoutBoxMetadata(
                     image: _inlineImageMetadata(item),
@@ -158,7 +173,7 @@ RenderNode _renderTreeBlock(State state, dynamic id, ComponentRegistry registry,
                     refMode: item.properties['refMode'] as String?,
                     targetId: item.properties['targetId'] as String?))
             : createTextBox(
-                '${block.id.value}/inline/$index', const Style(), text, null));
+                '${block.id.value}/inline/$index', itemStyle, text, null));
       }
     }
   }

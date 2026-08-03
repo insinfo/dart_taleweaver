@@ -45,6 +45,9 @@ void main() {
     expect(mapDigitalKey(key: 'Backspace'), isNull);
     expect(mapDigitalKey(key: 'Delete'), isNull);
     expect(mapDigitalKey(key: 'Enter'), isNull);
+    expect(mapDigitalKey(key: 'Enter', ctrl: true), isA<PageBreakAction>());
+    expect(mapDigitalKey(key: 'Enter', meta: true, mac: true),
+        isA<PageBreakAction>());
   });
 
   test('digital mapping covers formatting, tab context and word deletes', () {

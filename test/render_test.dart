@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 import 'package:taleweaver/src/core/components/component_registry.dart';
 import 'package:taleweaver/src/core/render/render.dart';
 import 'package:taleweaver/src/core/render/render_node.dart';
+import 'package:taleweaver/src/core/render/render_pipeline.dart';
 import 'package:taleweaver/src/core/render/footnote_numbering.dart';
 import 'package:taleweaver/src/core/state/block_position.dart';
 import 'package:taleweaver/src/core/state/ops/insert_text.dart';
@@ -15,6 +16,7 @@ import 'package:taleweaver/src/core/state/ops/insert_template_body.dart';
 import 'package:taleweaver/src/core/state/ops/insert_page_field.dart';
 import 'package:taleweaver/src/core/state/block_id.dart';
 import 'package:taleweaver/src/core/state/state.dart';
+import 'package:taleweaver/src/core/styles/length.dart';
 
 void main() {
   test('renderState builds document and paragraph render nodes', () {
@@ -34,6 +36,53 @@ void main() {
         'Hello');
   });
 
+  test('renderState cascades inline text attributes into a styled run', () {
+    var state = createEmptyDocument();
+    final paragraph = getBlock(state, state.rootId)!.firstChildId!;
+    state = insertText(
+      state,
+      Position(blockId: paragraph, offset: 0),
+      'Styled',
+      const {
+        'bold': true,
+        'italic': true,
+        'underline': true,
+        'strikethrough': true,
+        'link': 'https://example.test/docs',
+        'color': '#8030a0',
+        'backgroundColor': '#fff2a8',
+        'fontFamily': 'Georgia',
+        'fontSize': 18,
+      },
+    ).state;
+
+    final raw =
+        renderState(state, createDefaultComponentRegistry()).root as ElementBox;
+    final rawRun =
+        (raw.children.single as ElementBox).children.single as TextBox;
+    expect(rawRun.link, 'https://example.test/docs');
+    expect(rawRun.style.fontWeight?.value, 'bold');
+    expect(rawRun.style.fontStyle?.value, 'italic');
+    expect(rawRun.style.underline, isTrue);
+    expect(rawRun.style.lineThrough, isTrue);
+    expect(rawRun.style.color, '#8030a0');
+    expect(rawRun.style.backgroundColor, '#fff2a8');
+    expect(rawRun.style.fontFamily, 'Georgia');
+
+    final cascaded =
+        renderCascadedState(state, createDefaultComponentRegistry())
+            as ElementBox;
+    final cascadedRun =
+        (cascaded.children.single as ElementBox).children.single as TextBox;
+    expect(cascadedRun.computedStyle?.fontWeight.value, 'bold');
+    expect(cascadedRun.computedStyle?.fontStyle.value, 'italic');
+    expect(cascadedRun.computedStyle?.underline, isTrue);
+    expect(cascadedRun.computedStyle?.lineThrough, isTrue);
+    expect(cascadedRun.computedStyle?.color, '#8030a0');
+    expect(cascadedRun.computedStyle?.backgroundColor, '#fff2a8');
+    expect(cascadedRun.computedStyle?.fontFamily, 'Georgia');
+  });
+
   test('renderState computes list markers through numbering context', () {
     var state = createEmptyDocument();
     final paragraph = getBlock(state, state.rootId)!.firstChildId!;
@@ -51,6 +100,30 @@ void main() {
         renderState(state, createDefaultComponentRegistry()).root as ElementBox;
     final item = root.children.single as ElementBox;
     expect(item.style.markerText, '1.');
+  });
+
+  test('paragraph-indent attrs propagate through all text leaf components', () {
+    final registry = createDefaultComponentRegistry();
+    for (final type in ['paragraph', 'heading', 'list-item']) {
+      var state = createEmptyDocument();
+      final id = getBlock(state, state.rootId)!.firstChildId!;
+      if (type != 'paragraph') {
+        state = setBlockType(state, id, type, registry).state;
+      }
+      state = setBlockAttrs(state, id, {
+        'marginInlineStart': 36.0,
+        'marginInlineEnd': 18.0,
+        'textIndent': -12.0,
+      }).state;
+
+      final root = renderState(state, registry).root as ElementBox;
+      final leaf = root.children.single as ElementBox;
+      expect(leaf.style.marginInlineStart, const LengthValue(PxLength(36.0)),
+          reason: type);
+      expect(leaf.style.marginInlineEnd, const LengthValue(PxLength(18.0)),
+          reason: type);
+      expect(leaf.style.textIndent, const PxLength(-12.0), reason: type);
+    }
   });
 
   test('footnote numbering follows anchor document order', () {

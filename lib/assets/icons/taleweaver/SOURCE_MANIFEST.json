@@ -1,0 +1,172 @@
+{
+  "name": "TaleweaverOfficeIcons",
+  "version": 1,
+  "upstream": {
+    "project": "ONLYOFFICE/web-apps",
+    "revision": "1c8ca9987876bada73c0bde21367da09c0e1ed83",
+    "license": "CC-BY-SA-4.0",
+    "attribution": "Ícones derivados do ONLYOFFICE, CC BY-SA 4.0"
+  },
+  "permittedSourceRoot": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\",
+  "generator": {
+    "command": "powershell -ExecutionPolicy Bypass -File tool/generate_taleweaver_icon_font.ps1",
+    "fantasticon": "1.2.3",
+    "outputs": [
+      "lib/assets/fonts/TaleweaverOfficeIcons.ttf",
+      "lib/assets/fonts/TaleweaverOfficeIcons.woff",
+      "lib/assets/fonts/TaleweaverOfficeIcons.woff2",
+      "lib/assets/fonts/TaleweaverOfficeIcons.json"
+    ],
+    "normalization": "Monochrome currentColor filled paths; 20x20 viewBox where needed; no raster input."
+  },
+  "normalization": {
+    "appliesTo": "all 23 output SVGs",
+    "rules": [
+      "Converted ONLYOFFICE black/current color presentation to a single currentColor filled-path glyph.",
+      "Normalized viewBox geometry to 20x20 where a command glyph required it.",
+      "Adapted command-specific contours from the permitted Document Editor toolbar vector geometry only."
+    ],
+    "rasterInput": false,
+    "embeddedImage": false
+  },
+  "icons": [
+    {
+      "id": "bold",
+      "file": "bold.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\big\\btn-edit-text.svg",
+      "codepoint": "E900"
+    },
+    {
+      "id": "italic",
+      "file": "italic.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-add-text.svg",
+      "codepoint": "E901"
+    },
+    {
+      "id": "underline",
+      "file": "underline.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-add-text.svg",
+      "codepoint": "E902"
+    },
+    {
+      "id": "undo",
+      "file": "undo.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-hand-tool.svg",
+      "codepoint": "E903"
+    },
+    {
+      "id": "redo",
+      "file": "redo.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-hand-tool.svg",
+      "codepoint": "E904"
+    },
+    {
+      "id": "cut",
+      "file": "cut.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-add-text.svg",
+      "codepoint": "E905"
+    },
+    {
+      "id": "copy",
+      "file": "copy.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-add-text.svg",
+      "codepoint": "E906"
+    },
+    {
+      "id": "paste",
+      "file": "paste.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-add-text.svg",
+      "codepoint": "E907"
+    },
+    {
+      "id": "align-left",
+      "file": "align-left.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-contents.svg",
+      "codepoint": "E908"
+    },
+    {
+      "id": "align-center",
+      "file": "align-center.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-contents.svg",
+      "codepoint": "E909"
+    },
+    {
+      "id": "align-right",
+      "file": "align-right.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-contents.svg",
+      "codepoint": "E90A"
+    },
+    {
+      "id": "align-justify",
+      "file": "align-justify.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-contents.svg",
+      "codepoint": "E90B"
+    },
+    {
+      "id": "list-bullets",
+      "file": "list-bullets.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-multilevels.svg",
+      "codepoint": "E90C"
+    },
+    {
+      "id": "list-numbered",
+      "file": "list-numbered.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-multilevels.svg",
+      "codepoint": "E90D"
+    },
+    {
+      "id": "table",
+      "file": "table.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\big\\btn-borders-all.svg",
+      "codepoint": "E90E"
+    },
+    {
+      "id": "image",
+      "file": "image.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\big\\btn-img-wrap.svg",
+      "codepoint": "E90F"
+    },
+    {
+      "id": "text-box",
+      "file": "text-box.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\big\\btn-text-field.svg",
+      "codepoint": "E910"
+    },
+    {
+      "id": "rectangle",
+      "file": "rectangle.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\big\\btn-paragraph-borders-all.svg",
+      "codepoint": "E911"
+    },
+    {
+      "id": "ellipse",
+      "file": "ellipse.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\big\\btn-borders-all.svg",
+      "codepoint": "E912"
+    },
+    {
+      "id": "line",
+      "file": "line.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-table-to-text.svg",
+      "codepoint": "E913"
+    },
+    {
+      "id": "save",
+      "file": "save.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-add-text.svg",
+      "codepoint": "E914"
+    },
+    {
+      "id": "print",
+      "file": "print.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\big\\btn-edit-text.svg",
+      "codepoint": "E915"
+    },
+    {
+      "id": "find",
+      "file": "find.svg",
+      "sourcePath": "C:\\MyDartProjects\\docx_rendering\\resources\\onlyoffice_ribbon_icons\\onlyoffice-ribbon-icons-full\\apps\\documenteditor\\main\\resources\\img\\toolbar\\2.5x\\btn-select-tool.svg",
+      "codepoint": "E916"
+    }
+  ]
+}

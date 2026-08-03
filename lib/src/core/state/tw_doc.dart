@@ -9,8 +9,21 @@
 /// transaction system for batched mutations and dirty tracking.
 library;
 
+import 'dart:async';
+
 import 'block_id.dart';
 import 'inline_content.dart';
+
+final Object _transactionOriginZoneKey = Object();
+
+/// Runs synchronous/asynchronous document work with an ambient transaction
+/// origin, matching the TypeScript collaboration helper.
+R runWithTransactionOrigin<R>(String? origin, R Function() action) {
+  return runZoned(action, zoneValues: {_transactionOriginZoneKey: origin});
+}
+
+String? get ambientTransactionOrigin =>
+    Zone.current[_transactionOriginZoneKey] as String?;
 
 // ---------------------------------------------------------------------------
 // TwDoc — Document container
@@ -60,9 +73,23 @@ class TwDoc {
   /// Dirty block IDs accumulated during the current transaction.
   final Set<String> _transactionDirtyIds = {};
 
+  /// Monotonic revision of observable document mutations.
+  ///
+  /// A [State] intentionally creates fresh snapshot wrappers for cursor-only
+  /// changes, so wrapper identity cannot distinguish selection movement from
+  /// a real document write. Browser hosts use this revision to avoid treating
+  /// a caret move as an unsaved content change.
+  int _revision = 0;
+
+  int get revision => _revision;
+
   Map<String, Map<String, dynamic>>? _beforeBlocks;
   Map<String, Map<String, dynamic>>? _beforeEmbedContents;
   Map<String, Map<String, dynamic>>? _beforeTemplateContents;
+  Map<String, Map<String, dynamic>>? _beforeListDefs;
+  Map<String, Map<String, dynamic>>? _beforeComments;
+  Map<String, Map<String, dynamic>>? _beforeSuggestions;
+  Map<String, dynamic>? _beforeMeta;
 
   /// Nesting depth for transactions (supports nested transact calls).
   int _transactionDepth = 0;
@@ -97,11 +124,15 @@ class TwDoc {
     final wasInTransaction = _inTransaction;
     _inTransaction = true;
     if (_transactionDepth == 1) {
-      _transactionOrigin = origin;
+      _transactionOrigin = origin ?? ambientTransactionOrigin;
       _transactionDirtyIds.clear();
       _beforeBlocks = snapshotBlocks();
       _beforeEmbedContents = snapshotEmbedContents();
       _beforeTemplateContents = snapshotTemplateContents();
+      _beforeListDefs = snapshotListDefs();
+      _beforeComments = snapshotComments();
+      _beforeSuggestions = snapshotSuggestions();
+      _beforeMeta = Map<String, dynamic>.from(_deepClone(meta) as Map);
     }
 
     try {
@@ -109,15 +140,21 @@ class TwDoc {
     } finally {
       _transactionDepth--;
       if (_transactionDepth == 0) {
-        _captureTreeChanges();
+        final documentChanged = _captureTreeChanges();
         _inTransaction = false;
-        final dirtyIds = Set<String>.of(_transactionDirtyIds);
+        final dirtyIds =
+            documentChanged ? Set<String>.of(_transactionDirtyIds) : <String>{};
         final txOrigin = _transactionOrigin;
+        if (documentChanged) _revision++;
         _transactionDirtyIds.clear();
         _transactionOrigin = null;
         _beforeBlocks = null;
         _beforeEmbedContents = null;
         _beforeTemplateContents = null;
+        _beforeListDefs = null;
+        _beforeComments = null;
+        _beforeSuggestions = null;
+        _beforeMeta = null;
 
         // Notify listeners.
         if (!wasInTransaction) {
@@ -137,7 +174,11 @@ class TwDoc {
     _transactionDirtyIds.add(blockId);
   }
 
-  void _captureTreeChanges() {
+  /// Diffs all serializable document stores and returns whether the document
+  /// truly changed. `markDirty` is intentionally not enough for this decision:
+  /// callers may touch a value and put it back inside one transaction.
+  bool _captureTreeChanges() {
+    var documentChanged = false;
     final before = <String, Map<String, Map<String, dynamic>>?>{
       'blocks': _beforeBlocks,
       'embedContents': _beforeEmbedContents,
@@ -154,10 +195,27 @@ class TwDoc {
       if (oldTable == null) continue;
       for (final id in {...oldTable.keys, ...newTable.keys}) {
         if (!_deepEqual(oldTable[id], newTable[id])) {
+          documentChanged = true;
           _transactionDirtyIds.add(id);
         }
       }
     }
+
+    // Side tables are observable document state too. They do not map one to
+    // one to a render block, so a change invalidates the root rather than
+    // leaking comment/list/suggestion IDs into the block cache. This matters
+    // especially for undo/redo, which restores these tables wholesale.
+    final sideTablesChanged = !_deepEqual(_beforeListDefs, listDefs) ||
+        !_deepEqual(_beforeComments, comments) ||
+        !_deepEqual(_beforeSuggestions, suggestions) ||
+        !_deepEqual(_beforeMeta, meta);
+    if (sideTablesChanged) {
+      documentChanged = true;
+      final root = meta['rootId'];
+      _transactionDirtyIds
+          .add(root is String && root.isNotEmpty ? root : '__document__');
+    }
+    return documentChanged;
   }
 
   // -------------------------------------------------------------------------
@@ -261,6 +319,10 @@ class TwDoc {
     return _deepCopyTable(suggestions);
   }
 
+  /// Take a deep-copy snapshot of document-level metadata.
+  Map<String, dynamic> snapshotMeta() =>
+      Map<String, dynamic>.from(_deepClone(meta) as Map);
+
   /// Restore blocks from a snapshot.
   void restoreBlocks(Map<String, Map<String, dynamic>> snapshot) {
     blocks.clear();
@@ -313,6 +375,13 @@ class TwDoc {
       suggestions[entry.key] =
           Map<String, dynamic>.from(_deepClone(entry.value) as Map);
     }
+  }
+
+  /// Restore document-level metadata from a snapshot.
+  void restoreMeta(Map<String, dynamic> snapshot) {
+    meta
+      ..clear()
+      ..addAll(Map<String, dynamic>.from(_deepClone(snapshot) as Map));
   }
 
   /// Create a new empty TwDoc with the given rootId.

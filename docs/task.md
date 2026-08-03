@@ -1,5 +1,60 @@
 # Taleweaver Dart Port - Task List
 
+Checkpoint 2026-08-02: `WordPaginationController` deixou de agendar reflow
+para transações somente de seleção. A medição continua sendo solicitada para
+mudanças reais de conteúdo, seções, templates ou geometria, preservando a
+paginação e reduzindo o custo de caret/Ribbon em documentos longos.
+
+## Tarefa-pai — Portabilidade integral TypeScript → Dart
+
+O demo agora exercita novamente os caminhos incrementais de
+`DigitalDomReconciler` e `AccessibilityDomMirror`; o fallback visual estável
+não é perdido quando nós keyed são substituídos por edições estruturais.
+Suíte global, análise, compilação JS e E2E Chrome permanecem verdes.
+
+Checkpoint 2026-08-02: o projeto de exemplo `examples/advanced_editor` foi
+documentado e o entrypoint `web/` demonstra toolbar avançada, histórico,
+formatação, espaçamento e espelho semântico acessível. O teste E2E opt-in
+`test/e2e/advanced_editor_e2e_test.dart` usa `shelf_static` e `puppeteer` para
+validar o fluxo no Chrome. A seleção inicial foi alinhada ao helper TypeScript
+`initialSelectionForState`, escolhendo o primeiro leaf com `inlineContent` e
+evitando ações de toolbar sobre containers. Validação: suíte global (321
+testes, 1 skip opt-in), `dart analyze`, compilação JS e E2E Chrome verdes.
+O fallback contenteditable visual também é sincronizado com o `InlineContent`
+após cada dispatch, e o E2E verifica esse texto visível antes das demais ações
+da toolbar.
+Os eventos de seleção, `beforeinput`, IME, teclado, clipboard, paste e drop
+agora leem o host visual estável, e o E2E cobre digitação textual no Chrome
+com `sendCharacter`.
+`reconcileForeignChange` também foi portado para colaboração: invalida
+snapshots dirty, preserva seleção/histórico e publica `lastDirtyIds`; a suíte
+global está em 325 testes verdes. `subscribeForeignChanges` foi adicionado
+com filtro de origem, dirty IDs e unsubscribe idempotente; o mapa arquitetural
+está em `docs/portability_architecture_map.md`. `runWithTransactionOrigin`
+também foi portado com `Zone`, cobrindo origem ambient em operações aninhadas.
+
+Checkpoint 2026-08-02: o reducer agora porta o caminho direto de paste
+multilinha da referência, com normalização CRLF, replacement, split único,
+blocos irmãos intermediários, caret final e undo único. A cobertura avançada
+de paste sugerido/IME e demais pendências da portabilidade continua aberta.
+
+O modo de sugestões também foi ligado ao paste via `suggestingAuthor`, usando
+`replaceWithSuggestedFragment` para marcar inserções e registrar a sugestão.
+`InsertTextAction` usa os caminhos equivalentes `mintInsertion` e
+`replaceWithSuggestion`, com coalescing por autor.
+
+Os caminhos de delete backward/forward/word agora usam
+`markDeletion`/`deleteRangeOrSuggest` em modo de sugestões, preservando texto,
+caret e fallback direto por contexto.
+Formatação inline agora usa `markFormatting`, com proposta separada dos attrs
+vivos e fallback direto fora de contexto.
+`DeleteWordAction` também respeita seleção não colapsada antes do cálculo de
+fronteira por palavra.
+Os listeners browser de `copy`/`cut` agora seguem o contrato TypeScript de
+`preventDefault`, `text/plain` e `DeleteRangeAction`.
+`DigitalEditorController` agora encaminha `EditorConfig` ao reducer, incluindo
+configuração de sugestões no host.
+
 ## Fase 0 — Core / Utils
 - `[x]` `url_safety.dart`
 - `[x]` `perf_trace.dart`
@@ -112,7 +167,7 @@
 - `[x]` Tombstones de YText contra ressurreição de ContentString remoto obsoleto
 - `[x]` Fragmentação de segmentos de YText/YArray em deleções parciais, preservando clocks sobreviventes e rejeitando replay duplicado
 - `[x]` Detecção de payload divergente para o mesmo `YId`
-- `[/]` Resolução de conflitos semânticos (ordenação determinística por `YId`, tombstones e deletes remotos fora de ordem em `YMap`/`YArray`/`YText`, inserções vazias como no-op sem clocks/eventos, atributos materializados de `YText` via `insert`/`format`/`toDelta` com offsets UTF-16 inclusive surrogate pairs, emissão local e aplicação remota de `YFormatContent` em fronteira causal com abertura/fechamento básico por `null`, round-trip V1/V2 de âncoras internas a segmentos agrupados, fallback por `rightOrigin` após deleção da origem e convergência de formatos concorrentes sobrepostos, `pendingDeletes` para DeleteSet anterior ao struct, tipos compartilhados aninhados via `ContentType` com parent causal, updates posteriores e deleções nested convergentes em Map/Array/Text, origem preservada em `applyUpdate`/`applyUpdateV2` para filtros de UndoManager e observadores colaborativos, `YDocProvider`/`InMemoryYDocHub` com state-vector sync V1/V2, `YWebSocketProvider` browser-native com sync inicial e framing base64, `mergeUpdatesV2`, `encodeStateVectorFromUpdate`/`V2` e `diffUpdate`/`V2` com filtragem causal, no-op sem clocks novos e peers tardios, além de `YAwareness` com clocks/tombstones/listeners/lifecycle de desconexão, wire format binário lib0/Yjs, `YAwarenessProvider` e `InMemoryAwarenessHub` multi-peer de teste com sincronização de peers tardios portados; interleaving causal mais complexo e conflitos semânticos completos entre tipos ainda pendentes)
+- `[/]` Resolução de conflitos semânticos (ordenação determinística por `YId`, tombstones e deletes remotos fora de ordem em `YMap`/`YArray`/`YText`, inserções vazias como no-op sem clocks/eventos, transação automática para `YArray.delete` fora de `transact`, atributos materializados de `YText` via `insert`/`format`/`toDelta` com offsets UTF-16 inclusive surrogate pairs, emissão local e aplicação remota de `YFormatContent` em fronteira causal com abertura/fechamento básico por `null`, pareamento de marcadores entregues fora de ordem e fila para marcadores que chegam antes do texto, resolução de owner root por chave no replay, round-trip V1/V2 de âncoras internas a segmentos agrupados, fallback por `rightOrigin` após deleção da origem e convergência de formatos concorrentes sobrepostos, `pendingDeletes` para DeleteSet anterior ao struct, tipos compartilhados aninhados via `ContentType` com parent causal, updates posteriores e deleções nested convergentes em Map/Array/Text, origem preservada em `applyUpdate`/`applyUpdateV2` para filtros de UndoManager e observadores colaborativos, `YDocProvider`/`InMemoryYDocHub` com state-vector sync V1/V2, `YWebSocketProvider` browser-native com sync inicial e framing base64, `mergeUpdatesV2`, `encodeStateVectorFromUpdate`/`V2` e `diffUpdate`/`V2` com filtragem causal, no-op sem clocks novos e peers tardios, além de `YAwareness` com clocks/tombstones/listeners/lifecycle de desconexão, wire format binário lib0/Yjs, `YAwarenessProvider` e `InMemoryAwarenessHub` multi-peer de teste com sincronização de peers tardios portados; interleaving causal mais complexo e conflitos semânticos completos entre tipos ainda pendentes)
 - `[x]` Regressão de colaboração para `YMap` aninhado em `YArray`, com peer tardio e mutação posterior convergente
 - `[x]` Emissão causal do conteúdo inicial de tipos compartilhados integrados em parent item (`YMap`/`YArray`/`YText`)
 - `[x]` Handshake de `InMemoryYDocHub` sem eco de structs recém-recebidos, incluindo regressão de tipos nested pré-preenchidos mistos
@@ -162,18 +217,18 @@
 - `[x]` Delete range/backward/forward básico
 - `[x]` Apply formatting action para spans inline
 - `[x]` Integração inicial com History undo/redo (inclui coalescing temporal de inserções/remoções, quebra por seleção/comando e descarte de no-op)
-- `[/]` Portar todas as ações e coalescing da referência (incluindo alinhamento, geometria de colunas, dimensões de tabela e espaçamento de linha/parágrafo com validação de valores e no-op sem histórico para entradas inválidas, normalização/ordenação de tab-stops, indentação de parágrafos/listas aplicada a seleções multi-folha, replace-match/all e overrides de orientação de seção; ações estruturais e políticas avançadas restantes ainda pendentes)
+- `[/]` Portar todas as ações e coalescing da referência (incluindo alinhamento, geometria de colunas com `ColumnRule`, dimensões de tabela com guard ragged/no-op, delete-table com caret de replacement e espaçamento de linha/parágrafo com validação de valores e no-op sem histórico para entradas inválidas, normalização/ordenação de tab-stops, validação de alvo/dimensões/wrap canônico em ações de imagem, indentação de parágrafos/listas aplicada a seleções multi-folha, replacement match/all com cursor/atributos equivalentes e override de orientação condicionado a page-config/seção ativa; ações estruturais e políticas avançadas restantes ainda pendentes)
 - `[x]` Ações `EXPAND_DOCUMENT_BOUNDARY` e `SET_CONTAINER_WIDTH` ligadas ao reducer
 - `[x]` Ação `ESCAPE` reconhece seleção de objetos atômicos e preserva no-op na borda
 - `[x]` Ação `INSERT_NODE` valida tipos pelo registry e insere subárvores recursivas
 - `[x]` `INSERT_NODE` aceita registry de componentes configurável via `EditorConfig`
 - `[x]` `INSERT_NODE` participa da captura de histórico e expõe dirty IDs no undo
-- `[/]` Paste, formatting, tabelas, imagens, comentários e sugestões (incluída também inserção de imagem em bloco; paste/formatação, ciclo de comentários/sugestões, embeds, criação/edição estrutural e interação completa de imagens ainda pendentes)
+- `[/]` Paste, formatting, tabelas, imagens, comentários e sugestões (incluída também inserção de imagem, linha horizontal e TOC em bloco com parágrafo de landing, replacement de seleções por imagem inline, tab, tabela, cross-reference e footnote com caret após o embed/corpo, campos de página restritos a template, header/footer idempotentes e undo único; paste/formatação, ciclo de comentários/sugestões, embeds, criação/edição estrutural e interação completa de imagens ainda pendentes)
 
 ## Fase 9 — Print layout geometry
 - `[x]` LayoutBox, BlockBox, TextRunBox, LineBox e PageBox base
 - `[x]` Page size, margins, page gap e content geometry
-- `[/]` BFC/IFC, fragmentation, pagination e table layout (IFC prefere oportunidades UAX #14 soft, respeita mandatory line breaks, integra pontos automáticos de hifenização e agora possui grid de spans/sizing intrínseco de colunas, composição `TableBox`/`TableRowBox`/`TableCellBox`, fragmentação de tabelas por fronteiras de rows com repetição de `headerRowCount`, fragmentação de `BlockBox` rico por filhos e fragmentação/carry de corpos de footnote no print layer; `PageBox.headerSlot`/`footerSlot`/`footnoteSlot` nomeados e wrapper geométrico por página são a representação canônica, a paginação aceita e repete header/footer nomeados, `layoutTemplateRenderNode` e APIs de slots renderizados/por página/State materializam corpos em `BlockBox`, preservam imagens inline e fronteiras de elementos aninhados, reservam insets e ancoram header/footer sem sobreposição, com pintura/cursor/selection e descoberta de âncoras distinguindo slots do corpo sem duplicação; floats inline-start/inline-end de imagens com narrowing, deslocamento do fluxo e `clear: both` foram portados, mas colisão e políticas completas ainda pendentes)
+- `[/]` BFC/IFC, fragmentation, pagination e table layout (IFC prefere oportunidades UAX #14 soft, respeita mandatory line breaks, integra pontos automáticos de hifenização e agora possui grid de spans/sizing intrínseco de colunas, composição `TableBox`/`TableRowBox`/`TableCellBox`, fragmentação de tabelas por fronteiras de rows com repetição de `headerRowCount`, fragmentação de `BlockBox` rico por filhos e fragmentação/carry de corpos de footnote no print layer; `PageBox.headerSlot`/`footerSlot`/`footnoteSlot` nomeados e wrapper geométrico por página são a representação canônica, a paginação aceita e repete header/footer nomeados, `layoutTemplateRenderNode` e APIs de slots renderizados/por página/State materializam corpos em `BlockBox`, preservam imagens inline e fronteiras de elementos aninhados, reservam insets e ancoram header/footer sem sobreposição, com pintura/cursor/selection e descoberta de âncoras distinguindo slots do corpo sem duplicação; floats inline-start/inline-end de imagens com narrowing, deslocamento do fluxo, `clear` lateral/ambos, nova faixa para colisão e liberação após a borda inferior foram portados, mas políticas completas multi-linha ainda pendentes)
 - `[/]` Cursor geométrico, hit-test e selection geometry (caret/hit-test textual em linhas e tabelas aninhadas, entrada pública `hitTestPage` com prioridade para índice/hit-test de objetos atômicos por retângulo físico, caret e selection recursivos com offsets físicos acumulados, seleções entre blocos diferentes e páginas, offsets de linha, afinidade before/after, seleção same-line/multi-line por página e agregação de fragmentos entre páginas — inclusive eixo inline vertical — e travessia do `PageBox.footnoteSlot` nomeado portados; interação completa ainda pendente)
 - `[x]` Hit-test textual acumulando offsets através de múltiplos `TextRunBox` na mesma linha
 - `[x]` Hit-test, caret e seleção RTL por `TextRunBox`, com fração física espelhada
@@ -194,7 +249,7 @@
 - `[x]` Selection bridge serializável entre pontos DOM e posições UTF-16
 - `[x]` Render State/RenderNode para `package:web` DOM
 - `[/]` Reconciler incremental e selection bridge (diff keyed, bridge puro, ciclo real mount/reconcile/destroy, aplicação keyed de nós em `package:web`, patch fino recursivo por `data-block-id`, demo web montado no render tree real, reconciliação posicional de subárvores não-keyed e text nodes misturados, propagação compartilhada de `SuggestionView` visual/semântica, captura/restauração de seleção do host em subárvores DOM aninhadas e listener global `selectionchange` com deduplicação estrutural portados; listeners/semântica completa de todos os widgets DOM ainda pendentes)
-- `[/]` beforeinput/key mapping e controller contenteditable (insert/delete/history, replacement com fallback `dataTransfer`/target ranges, paste nativo sem duplicação, drop, word/line delete, cut/drag ancorados na seleção corrente, format shortcuts, modificador primário Ctrl/Meta por plataforma, `Escape`, Tab/list context, edição Backspace/Delete/Enter delegada exclusivamente a `beforeinput`, listeners delegados no wrapper, composição IME com commit único, paste/drop nativos de `text/plain` e extração browser de `StaticRange` para `targetRanges` portados; composição avançada com reconciliação ainda pendente)
+- `[/]` beforeinput/key mapping e controller contenteditable (insert/delete/history, deletion de embeds atômicos nas fronteiras, replacement com fallback `dataTransfer`/target ranges, paste nativo sem duplicação, drop, word/line delete, cut/drag ancorados na seleção corrente, format shortcuts, modificador primário Ctrl/Meta por plataforma, `Escape`, Tab/list context, edição Backspace/Delete/Enter delegada exclusivamente a `beforeinput`, listeners delegados no wrapper, composição IME com commit único, paste/drop nativos de `text/plain` e extração browser de `StaticRange` para `targetRanges` portados; composição avançada com reconciliação ainda pendente)
 
 ## Fase 10 — Canvas renderer
 - `[x]` Pintura recursiva de PageBox/BlockBox/LineBox/TextRunBox via `package:web`
@@ -217,4 +272,4 @@
 - `[x]` `web/main.dart` com toolbar, host contenteditable inicial e mirror semântico montado/reconciliado com raiz estável
 - `[x]` Entry point compila com `dart compile js`
 - `[x]` Integração inicial do controller com eventos DOM `beforeinput`/`keydown`
-- `[/]` Integração completa do reducer/editor com eventos DOM (toolbar compartilhando controller, ações editoriais incluindo header/footer e page-number/page-count, alinhamento/espaçamento/indentação, captura/restauração de seleção, render tree keyed via `DigitalDomReconciler` e atualização do accessibility mirror ligadas; listeners nativos de `paste`/`drop`/`copy`/`cut` com `text/plain`, extração canônica `extractText`/`builtinEmbedSerializer` e corte via `DeleteRangeAction`; widgets adicionais, composição IME avançada e reconciliação contenteditable fina ainda pendentes)
+- `[/]` Integração completa do reducer/editor com eventos DOM (toolbar compartilhando controller, ações editoriais incluindo header/footer e page-number/page-count, alinhamento/espaçamento/indentação, captura/restauração de seleção, render tree keyed via `DigitalDomReconciler` e atualização do accessibility mirror ligadas; listeners nativos de `paste`/`drop`/`copy`/`cut` com `text/plain`, extração canônica `extractText`/`builtinEmbedSerializer` e corte via `DeleteRangeAction`, replacement de seleção por imagem inline com undo único e invalidação correta do cache após undo/redo; widgets adicionais, composição IME avançada e reconciliação contenteditable fina ainda pendentes)

@@ -1,10 +1,144 @@
 # Portagem Taleweaver: TypeScript → Dart Puro
 
+### Checkpoint 2026-08-02 — paginação sem reflow em seleção
+
+O caminho browser-flow de `WordPaginationController.update` agora distingue
+transações de seleção das alterações de documento. Mover o caret, expandir uma
+seleção ou atualizar o contexto da Ribbon não agenda mais uma medição/layout do
+documento nem reconstrói decorações de páginas; alterações de conteúdo,
+seções, templates e geometria continuam seguindo o ciclo completo. Isso reduz
+trabalho no caminho quente de digitação/navegação em documentos grandes sem
+alterar a árvore editável ou a paginação visível.
+
+### Checkpoint 2026-08-02 — exemplo avançado e E2E browser
+
+O demo passou a usar novamente `DigitalDomReconciler.reconcile` e
+`AccessibilityDomMirror.reconcile` incrementalmente. O host de fallback visual
+é estável e separado dos nós keyed que o reconciler pode substituir durante
+edições estruturais; o teste E2E valida o conteúdo visual após a inserção.
+Suíte global: 321 testes, 1 skip opt-in; análise, compilação JS, E2E Chrome e
+`git diff --check` aprovados.
+
+Foi criado `examples/advanced_editor/README.md` e o entrypoint web agora
+expõe um exemplo de editor avançado com toolbar de inserção, formatação,
+histórico, espaçamento, estruturas e espelho semântico acessível. O teste
+`test/e2e/advanced_editor_e2e_test.dart` serve `web/` com `shelf_static` e
+exercita o fluxo em Chrome via `puppeteer`; permanece opt-in com
+`RUN_E2E=1` para não exigir Chrome na suíte VM. A comparação com
+`initialSelectionForState` da referência encontrou e corrigiu a seleção inicial
+do Dart, que podia apontar para um container em vez do primeiro leaf com
+conteúdo. Validação: `dart format`, `dart analyze`, suíte global (321 testes,
+1 skip opt-in), `dart compile js`, E2E Chrome e `git diff --check` aprovados.
+
+### Checkpoint 2026-08-02 — paste multilinha no reducer
+
+`PasteTextAction` agora segue o caminho direto de `paste.ts`: normaliza CRLF,
+substitui seleções compatíveis, insere a primeira linha no bloco focal, divide
+o bloco uma única vez, cria linhas intermediárias em lote preservando tipo e
+attrs e posiciona o caret no fim da última linha. A operação usa uma captura de
+histórico única e mantém paste vazio como no-op. Regressões cobrem finais de
+linha, linhas vazias, replacement e caret; `dart format`, `dart analyze`, suíte
+global (314 testes), compilação JS e `git diff --check` aprovados.
+
+### Checkpoint 2026-08-02 — paste rastreado em modo de sugestões
+
+`EditorConfig.suggestingAuthor` agora ativa `replaceWithSuggestedFragment` para
+paste, marcando as linhas inseridas, criando o registro de sugestão e mantendo
+replacement multilinha/undo único. A comparação com `paste-suggesting.test.ts`
+foi coberta para o caminho básico; composição avançada e políticas completas de
+sugestões continuam pendentes. Validação: `dart format`, `dart analyze`, suíte
+global (315 testes), compilação JS e `git diff --check` aprovados.
+
+### Checkpoint 2026-08-02 — INSERT_TEXT rastreado
+
+`InsertTextAction` agora usa `mintInsertion` no caret e
+`replaceWithSuggestion` sobre seleções quando `suggestingAuthor` está ativo,
+incluindo coalescing por autor, replacement, offsets do caret e undo. A
+comparação segue `insert-text.ts`; `dart format`, `dart analyze`, suíte global
+(316 testes), compilação JS e `git diff --check` aprovados.
+
+### Checkpoint 2026-08-02 — deleções rastreadas
+
+Os handlers de `DELETE_BACKWARD`, `DELETE_FORWARD` e `DELETE_WORD` agora
+centralizam o ramo `deleteRangeOrSuggest`: em contexto de edição e com
+`suggestingAuthor`, preservam o texto e aplicam `markDeletion`; fora desse
+contexto usam `deleteRange`. Seleções não colapsadas, caret e fallback foram
+regredidos contra `suggestion-mode.ts`. Validação: `dart format`, `dart analyze`,
+suíte global (317 testes), compilação JS e `git diff --check` aprovados.
+
+### Checkpoint 2026-08-02 — formatação rastreada
+
+`ToggleStyleAction`, `ClearFormattingAction`, ações de apresentação inline e
+`ApplyFormattingAction` agora usam `markFormatting` em modo de sugestões,
+preservando attrs vivos e registrando `proposedAttrs`; fora de contexto mantêm
+`applyAttrsToRange`. A comparação segue `suggestion-mode.ts`; validação:
+`dart format`, `dart analyze`, suíte global (318 testes), compilação JS e
+`git diff --check` aprovados.
+
+O host visual do exemplo também foi sincronizado com o `InlineContent` após
+cada transação, evitando que o fallback contenteditable permanecesse com o
+texto anterior enquanto as projeções renderizada e semântica eram atualizadas.
+O E2E agora verifica o conteúdo visível antes de exercer bold, undo, redo e
+line spacing.
+
+Os eventos `selectionchange`, `beforeinput`, paste/drop, clipboard, IME e
+teclado do demo agora usam o host visual estável como origem da seleção,
+enquanto o mirror semântico continua sendo atualizado em paralelo. O E2E
+também cobre entrada textual via `sendCharacter`; validação: 322 testes Dart,
+1 skip opt-in, `dart analyze`, compilação JS, E2E Chrome e `git diff --check`.
+
+### Checkpoint 2026-08-02 — observer colaborativo e mapa arquitetural
+
+`docs/portability_architecture_map.md` registra o mapa de conceitos
+TypeScript/Dart, fluxo de dados, concorrência, memória, APIs públicas,
+tratamento de erros e diferenças browser/VM exigido para a portabilidade.
+
+`subscribeForeignChanges` agora observa `TwDoc` por origem, ignora a própria
+origem, entrega dirty IDs estrangeiros e retorna unsubscribe idempotente.
+`applyOperation` aceita `origin` opcional e o encaminha à transação sem
+quebrar a API existente. Regressões cobrem origem própria, origem estrangeira
+e teardown. `runWithTransactionOrigin` usa `Zone` para transportar uma origem
+ambiental por operações aninhadas/assíncronas sem estado global compartilhado.
+
+Validação: suíte global com 325 testes, 1 skip opt-in, `dart analyze`,
+compilação JS, E2E Chrome e `git diff --check` aprovados.
+
+### Checkpoint 2026-08-02 — reconcileForeignChange
+
+Foi portada a seam colaborativa `reconcileForeignChange` da referência:
+invalida apenas os snapshots dos blocos dirty, cria um `freshState`, preserva
+seleção/histórico/configuração do editor e propaga `lastDirtyIds` para os
+consumidores incrementais. A API foi exportada e recebeu regressão dedicada.
+Validação: suíte global com 322 testes, `dart analyze`, compilação JS, E2E
+Chrome e `git diff --check` aprovados.
+
+### Checkpoint 2026-08-02 — seleção em DELETE_WORD
+
+`DeleteWordAction` agora usa a seleção ativa quando ela não está colapsada,
+antes de calcular movimento por palavra; o caret resultante segue a direção e
+o modo direto/rastreado. A regressão compara esse guard com `delete-word.ts`.
+Validação: `dart format`, `dart analyze`, suíte global (319 testes), compilação
+JS e `git diff --check` aprovados.
+
+### Checkpoint 2026-08-02 — clipboard copy/cut browser
+
+Os listeners `copy`/`cut` do demo agora seguem `digital-controller.ts`: sempre
+cancelam a ação nativa, escrevem `text/plain` inclusive quando vazio e o cut
+sempre despacha `DeleteRangeAction` após extrair o texto canônico. Validação:
+`dart format`, `dart analyze`, testes digitais relevantes (14), compilação JS e
+`git diff --check` aprovados.
+
+### Checkpoint 2026-08-02 — configuração no DigitalEditorController
+
+`DigitalEditorController` agora aceita `EditorConfig` injetável e a encaminha
+em todo `dispatch`, permitindo que sugestões e demais políticas do reducer
+cheguem ao host browser, preservando o default existente. Regressão cobre
+`suggestingAuthor`; validação: `dart format`, `dart analyze`, testes digitais
+relevantes (12), compilação JS e `git diff --check` aprovados.
+
 Portar o motor de processador de texto **Taleweaver** (TypeScript, monorepo com 4 pacotes, ~80.000 linhas de código fonte em ~415 arquivos) para **Dart puro** usando apenas `web: ^1.1.1` e, se necessário, `html: ^0.15.4` como dependências (sem `dart:html`).
 
 O objetivo deste plano é a portabilidade integral de `referencias/yjs-main` e `referencias/taleweaver-main`, sem gambiarras, atalhos ou um MVP descartável. Cada fase só pode ser marcada como concluída quando a implementação Dart cobrir o contrato da referência e tiver testes equivalentes; itens ainda não portados permanecem explicitamente pendentes.
-
-se nesessario veja as referencias D:\EuroOfficeNative\DocumentServer D:\libreoffice\core-master C:\MyDartProjects\itext\referencias\itext-dotnet-develop  C:\MyDartProjects\pdfbox_dart\referencias\pdfbox-java  C:\MyDartProjects\pdfbox_dart\referencias\pdfbox-java\fontbox\src C:\MyDartProjects\pdf.js\referencia\pdf.js-master C:\MyDartProjects\poe\referencias\poi C:\MyDartProjects\canvas-editor-port\referencias C:\MyDartProjects\canvas-editor-port\resources\word.example C:\MyDartProjects\canvas-editor-port\resources\google-docs execute um teste de cada vez pare de executar testes em paralelo esta travando o computador
 
 ### Estado da portabilidade
 
@@ -1341,7 +1475,127 @@ O materializador `layoutTemplateRenderNode` agora honra `float: inline-start` e
 reserva sua largura para o fluxo subsequente e desloca recursivamente
 `BlockBox`/`LineBox`/`TextRunBox` para manter a geometria coerente. A regressão
 de narrowing e deslocamento foi adicionada. Validação: `dart format`,
-`dart analyze`, suíte global (`301` testes), compilação JS e `git diff --check`.
+`dart analyze`, suíte global (`303` testes), compilação JS e `git diff --check`.
 `clear: inline-start`, `inline-end` e `both` agora reposicionam o fluxo abaixo
-da borda inferior do float correspondente; colisão e políticas completas de
+da borda inferior do float correspondente. Quando floats concorrentes excedem
+a largura disponível, o próximo float inicia uma nova faixa abaixo do anterior.
+Após o fluxo ultrapassar a borda inferior, a largura reservada é liberada para
+os blocos seguintes. Validação global: 303 testes; políticas completas de
 floats multi-linha ainda permanecem pendentes.
+
+### Checkpoint — marcadores YText remotos fora de ordem
+
+`YText.applyRemoteFormat` agora mantém fechamentos recebidos antes da abertura
+e limita a aplicação posterior ao intervalo causal correto; as fronteiras
+pendentes preservam `origin`/`rightOrigin` para acompanhar inserções causais
+intermediárias. Marcadores normais continuam abrindo/fechando a partir de suas
+âncoras. A regressão cobre entrega invertida de `YFormatContent`. Validação:
+`dart format`, `dart analyze`, suíte global serializada (`304` testes),
+compilação JS e `git diff --check`.
+
+Marcadores recebidos antes de qualquer segmento também ficam enfileirados e
+são reaplicados quando o texto chega; a resolução de owners root por chave foi
+ajustada para permitir esse replay causal. Validação final deste refinamento:
+306 testes serializados.
+
+`YArray.delete` também passou a abrir uma transação automaticamente quando
+invocado fora de `YDoc.transact`, alinhando a emissão de eventos com `insert`,
+`clear` e `YText.delete`. A regressão confirma uma única transação observável.
+
+As ações `SET_IMAGE_SIZE`, `SET_IMAGE_WRAP` e `SET_IMAGE_ALT` agora validam o
+bloco-alvo antes de iniciar histórico; dimensões inválidas e wraps fora de
+`left`/`right`/`break` são no-op, e `break` remove o atributo para manter o
+estado canônico. Validação global: 308 testes.
+
+`InsertInlineImageAction` agora substitui seleções não-colapsadas no mesmo
+contexto, insere o embed no ponto inicial e posiciona o caret imediatamente
+após o objeto; spans cross-parent/context permanecem no-op conforme a
+referência. A regressão cobre replacement e seleção pós-inserção.
+
+O reducer de `UndoAction`/`RedoAction` agora invalida o cache de snapshots ao
+materializar o estado restaurado (`freshState`), evitando que leituras
+imediatamente posteriores exibam o conteúdo pré-undo. A regressão de imagem
+confirma que replacement de seleção desfaz delete+insert em uma única entrada.
+
+`InsertTabAction` segue a mesma semântica de replacement: remove a seleção
+compatível, insere o embed tab e colapsa o caret após ele, incluindo undo único.
+Validação global: 309 testes serializados.
+
+`InsertCrossReferenceAction` agora valida contexto de corpo e alvo, substitui
+seleções compatíveis, posiciona o caret após o cross-reference e mantém undo
+único; `InsertPageFieldAction`/page-number/page-count aplicam a mesma operação
+somente em corpos de template. Validação focada: 41 testes do editor; suíte
+global serializada: 310 testes aprovados, além de `dart analyze`, compilação JS
+e `git diff --check`.
+
+`InsertFootnoteAction` agora rejeita contextos não pertencentes ao corpo
+principal, substitui seleções same-parent em uma captura única e posiciona o
+caret no primeiro parágrafo do corpo recém-criado. A regressão cobre o anchor,
+replacement e caret; o teste focalizado do editor passou com 42 casos e a
+suíte global serializada fechou em 311 testes, com compilação JS aprovada.
+
+`InsertTableAction` também substitui seleções same-parent antes de criar a
+tabela, preservando o caret no primeiro ponto editável da célula e agrupando a
+operação em um único undo. A regressão de replacement elevou o teste focalizado
+do editor para 43 casos; suíte global serializada fechou em 312 testes, com
+análise, compilação JS e `git diff --check` aprovados.
+
+`ToggleSectionLandscapeAction` foi alinhada ao contrato de `toggle-section-
+landscape.ts`: exige `EditorConfig.pageConfig`, exige seção ativa, troca
+dimensões usando a configuração doc-wide e retorna no-op por identidade quando
+não há seção/configuração; o fallback A4 foi removido.
+
+`SetSectionColumnsAction` agora aceita e encaminha `ColumnRule` opcional, além
+de `columnCount`/`columnGap`, cobrindo o vocabulário de `set-section-columns.ts`.
+Validação serial global permanece em 312 testes, com análise, compilação JS e
+diff check aprovados.
+
+`SetFootnotePolicyAction` agora aplica a guarda de identidade do handler TS:
+políticas inválidas ou repetidas retornam o mesmo editor sem commit de
+histórico. A regressão de repetição passou; a suíte global permanece em 312
+testes, com análise, compilação JS e diff check aprovados.
+
+`ReplaceMatchAction` agora usa `replaceRange` com os atributos do run na
+posição inicial e colapsa o caret no seam da substituição; `ReplaceAllAction`
+mantém um único undo, preserva a identidade em lista vazia/no-op e colapsa no
+primeiro match afetado, conforme `actions/replace.ts`. O editor focalizado
+passou com 43 testes após a regressão de ambos os caminhos.
+
+`InsertHeaderAction`/`InsertFooterAction` agora seguem a referência no caminho
+de criação e no caminho idempotente: ligam ao template da seção ativa (ou
+root), movem o caret para o primeiro parágrafo, não duplicam corpos existentes
+e resolvem corretamente ações subsequentes a partir de conteúdo template.
+Suíte global: 312 testes aprovados.
+
+`InsertImageAction` agora segue `insertAtomicBlockAfterFocus`: cria a imagem
+atômica imediatamente após o bloco focal, cria um parágrafo vazio subsequente,
+move o caret para esse parágrafo e agrupa ambos em uma entrada de histórico.
+`Escape` foi ajustado para reconhecer o novo landing paragraph. Suíte global:
+312 testes serializados aprovados.
+
+`DeleteTableAction` agora replica `deleteWholeTable`: captura o irmão
+remanescente ou o parágrafo substituto quando a tabela era filha única,
+remove a tabela em uma entrada e posiciona o caret no bloco sobrevivente.
+Regressão estrutural adicionada; suíte global serializada: 312 testes.
+
+As ações de edição de tabela restantes agora respeitam o guard `ragged` da
+referência e retornam no-op por identidade quando a operação não altera o
+estado, evitando commits espúrios em tabelas degeneradas.
+
+`InsertHorizontalLineAction` e `InsertTableOfContentsAction` agora usam a
+mesma cadeia de bloco atômico da referência: inserem o objeto após o foco,
+criam parágrafo vazio subsequente e posicionam o caret no landing paragraph,
+com undo único. Suíte global serializada: 312 testes aprovados.
+
+`DeleteBackwardAction`/`DeleteForwardAction` agora removem imagens, linhas e
+TOCs atômicos adjacentes nas fronteiras do parágrafo, preservando o caret e o
+undo, conforme `deleteAdjacentAtomicLeaf` da referência. Regressão incluída;
+suíte global serializada: 312 testes.
+
+As ações de delete backward/forward/word e split agora evitam iniciar ou
+comitar histórico quando o alvo é uma fronteira sem movimento, preservando a
+identidade de no-op exigida pelos handlers TypeScript.
+
+`SECTION_BREAK` e `MERGE_SECTION` também passaram a usar a guarda de identidade
+antes de abrir/fechar histórico, evitando commits em operações estruturais que
+não podem alterar a árvore.

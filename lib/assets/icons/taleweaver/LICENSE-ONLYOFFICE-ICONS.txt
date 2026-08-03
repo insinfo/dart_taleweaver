@@ -1,0 +1,27 @@
+Taleweaver Office Ribbon Icon Set
+
+This directory contains SVG glyphs derived and adapted from ONLYOFFICE
+Document Editor toolbar SVG vectors.
+
+Source snapshot (local, vector SVGs only):
+C:\MyDartProjects\docx_rendering\resources\onlyoffice_ribbon_icons\onlyoffice-ribbon-icons-full\apps\documenteditor\main\resources\img\toolbar\2.5x
+
+Upstream project: ONLYOFFICE/web-apps
+Upstream revision documented by the supplied source snapshot:
+1c8ca9987876bada73c0bde21367da09c0e1ed83
+
+Attribution: "Ícones derivados do ONLYOFFICE, CC BY-SA 4.0".
+
+License: Creative Commons Attribution-ShareAlike 4.0 International
+(CC BY-SA 4.0), https://creativecommons.org/licenses/by-sa/4.0/
+
+Changes in Taleweaver:
+- Normalized all glyphs to a monochrome currentColor path representation
+  suitable for a font compiler.
+- Normalized the command glyphs to a 20 by 20 viewBox where needed.
+- Adapted small command-specific glyphs from the permitted Document Editor
+  toolbar vector geometry; no PNG, raster-to-SVG conversion, base64 fallback,
+  or third-party icon source was used.
+
+The detailed per-file provenance and fixed codepoints are in
+SOURCE_MANIFEST.json.

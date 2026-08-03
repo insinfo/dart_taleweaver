@@ -23,6 +23,8 @@ const leafBlockTypes = <String>{
   'list-item',
   'table-cell',
   'image',
+  'text-box',
+  'shape',
   'horizontal-line',
   'footnote-body',
   'template-body',

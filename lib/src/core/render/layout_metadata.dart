@@ -4,6 +4,7 @@
 library;
 
 import '../state/block_id.dart';
+import '../state/drawing.dart';
 
 class ImageMetadata {
   final String src;
@@ -16,6 +17,24 @@ class ImageMetadata {
     required this.width,
     required this.height,
     this.alt,
+  });
+}
+
+/// Presentation metadata for a JSON-backed text box or simple shape.
+///
+/// Unlike [ImageMetadata], this is text-bearing for text boxes, rectangles,
+/// and ellipses. The browser renderer uses it to add only presentation DOM;
+/// the ordinary render-node children remain the authoritative editable text.
+class DrawingMetadata {
+  /// `text-box`, `rectangle`, `ellipse`, or `line`.
+  final String kind;
+  final DrawingProperties properties;
+  final bool acceptsText;
+
+  const DrawingMetadata({
+    required this.kind,
+    required this.properties,
+    required this.acceptsText,
   });
 }
 
@@ -33,6 +52,7 @@ class ListMetadata {
 
 class LayoutBoxMetadata {
   final ImageMetadata? image;
+  final DrawingMetadata? drawing;
   final bool? horizontalLine;
   final bool? tableOfContents;
   final BlockId? navTarget;
@@ -69,6 +89,7 @@ class LayoutBoxMetadata {
 
   const LayoutBoxMetadata({
     this.image,
+    this.drawing,
     this.horizontalLine,
     this.tableOfContents,
     this.navTarget,

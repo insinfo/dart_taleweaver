@@ -2,6 +2,8 @@ library;
 
 import '../editor/editor_action.dart';
 import '../editor/editor_state.dart';
+import '../editor/reconcile_foreign_change.dart' as foreign;
+import '../state/block_id.dart';
 import 'map_before_input.dart';
 import 'map_digital_key.dart';
 
@@ -13,11 +15,15 @@ typedef EditorStateListener = void Function(EditorState state);
 class DigitalEditorController {
   EditorState _editor;
   final bool mac;
+  final EditorConfig config;
   bool _isComposing = false;
   final List<EditorStateListener> _listeners = [];
 
-  DigitalEditorController({EditorState? initial, this.mac = false})
-      : _editor = initial ?? createInitialEditorState();
+  DigitalEditorController({
+    EditorState? initial,
+    this.mac = false,
+    this.config = const EditorConfig(),
+  }) : _editor = initial ?? createInitialEditorState(config: config);
 
   EditorState get editor => _editor;
   bool get isComposing => _isComposing;
@@ -40,12 +46,36 @@ class DigitalEditorController {
       _listeners.remove(listener);
 
   EditorState dispatch(EditorAction action) {
-    final next = reduceEditor(_editor, action);
+    final next = reduceEditor(_editor, action, config);
     if (!identical(next, _editor)) {
       _editor = next;
       for (final listener in List<EditorStateListener>.of(_listeners)) {
         listener(_editor);
       }
+    }
+    return _editor;
+  }
+
+  /// Replaces the controller snapshot through the ordinary listener channel.
+  ///
+  /// Import adapters use this instead of reaching into a mounted DOM host, so
+  /// all embedded surfaces reconcile the same document and selection.
+  EditorState replaceState(EditorState state) {
+    if (identical(state, _editor)) return _editor;
+    _editor = state;
+    for (final listener in List<EditorStateListener>.of(_listeners)) {
+      listener(_editor);
+    }
+    return _editor;
+  }
+
+  /// Adopts a remote/shared-document transaction without adding it to local
+  /// undo history, then notifies mounted hosts to reconcile their DOM.
+  EditorState reconcileForeignChange(Set<BlockId> dirtyIds) {
+    if (dirtyIds.isEmpty) return _editor;
+    _editor = foreign.reconcileForeignChange(_editor, dirtyIds);
+    for (final listener in List<EditorStateListener>.of(_listeners)) {
+      listener(_editor);
     }
     return _editor;
   }

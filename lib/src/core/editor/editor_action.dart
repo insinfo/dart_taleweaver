@@ -4,7 +4,9 @@ import '../state/block_position.dart';
 import '../state/attrs.dart';
 import '../state/find_matches.dart';
 import '../state/inline_content.dart';
+import '../state/drawing.dart';
 import '../styles/tab_stops.dart';
+import '../styles/column_config.dart';
 
 sealed class EditorAction {
   const EditorAction();
@@ -81,6 +83,21 @@ class SetParagraphSpacingAction extends EditorAction {
   const SetParagraphSpacingAction(this.edge, this.value);
 }
 
+/// Sets the three Word-style paragraph indent controls in logical CSS terms.
+///
+/// [inlineStart] and [inlineEnd] are non-negative distances from their
+/// respective paragraph edges. [firstLine] is an offset relative to
+/// [inlineStart], so it may be negative to express a hanging indent. Passing
+/// `null` clears the corresponding direct paragraph override.
+class SetParagraphIndentsAction extends EditorAction {
+  final double? inlineStart;
+  final double? inlineEnd;
+  final double? firstLine;
+
+  const SetParagraphIndentsAction(
+      this.inlineStart, this.inlineEnd, this.firstLine);
+}
+
 class IndentAction extends EditorAction {
   const IndentAction();
 }
@@ -114,7 +131,78 @@ class ToggleSectionLandscapeAction extends EditorAction {
 class SetSectionColumnsAction extends EditorAction {
   final int columnCount;
   final double? columnGap;
-  const SetSectionColumnsAction(this.columnCount, {this.columnGap});
+  final ColumnRule? columnRule;
+  const SetSectionColumnsAction(this.columnCount,
+      {this.columnGap, this.columnRule});
+}
+
+/// Sets the pagination margins of the active section, or of the document root
+/// when the selection is not inside an explicit section.
+///
+/// Values are points and use the logical-axis names used by the persisted
+/// `pageMargins` attribute: `blockStart`, `blockEnd`, `inlineStart`, and
+/// `inlineEnd`.  The reducer normalizes the input to a plain
+/// `Map<String, double>` before writing it, so the document data is safe to
+/// round-trip through the built-in JSON and binary serializers.
+///
+/// Use [SetActivePageMarginsAction.values] when named numeric arguments are
+/// more convenient than a map.
+class SetActivePageMarginsAction extends EditorAction {
+  /// JSON-compatible logical page-margin values in points.
+  final Map<String, dynamic> pageMargins;
+
+  const SetActivePageMarginsAction(this.pageMargins);
+
+  /// Convenience constructor for the four required logical margins.
+  factory SetActivePageMarginsAction.values({
+    required num blockStart,
+    required num blockEnd,
+    required num inlineStart,
+    required num inlineEnd,
+  }) {
+    return SetActivePageMarginsAction(<String, dynamic>{
+      'blockStart': blockStart,
+      'blockEnd': blockEnd,
+      'inlineStart': inlineStart,
+      'inlineEnd': inlineEnd,
+    });
+  }
+
+  /// Convenience constructor for horizontal, left-to-right page coordinates.
+  ///
+  /// This maps `top`, `right`, `bottom`, and `left` to the persisted logical
+  /// page-margin representation.
+  factory SetActivePageMarginsAction.physical({
+    required num top,
+    required num right,
+    required num bottom,
+    required num left,
+  }) {
+    return SetActivePageMarginsAction.values(
+      blockStart: top,
+      blockEnd: bottom,
+      inlineStart: left,
+      inlineEnd: right,
+    );
+  }
+}
+
+/// Sets the paper size of the active section, or of the document root when
+/// the selection is not inside an explicit section.
+///
+/// Both values are points and are persisted as the JSON-compatible
+/// `pageInlineSize` and `pageBlockSize` attributes. The reducer canonicalizes
+/// numeric input to `double`s, rejects non-positive or non-finite values, and
+/// refuses a size that would leave no usable rectangle after the active page
+/// margins are applied.
+class SetActivePageSizeAction extends EditorAction {
+  /// Physical page width in points in the document's inline direction.
+  final num inlineSize;
+
+  /// Physical page height in points in the document's block direction.
+  final num blockSize;
+
+  const SetActivePageSizeAction(this.inlineSize, this.blockSize);
 }
 
 class SetFootnotePolicyAction extends EditorAction {
@@ -206,9 +294,28 @@ class SplitNodeAction extends EditorAction {
   const SplitNodeAction();
 }
 
+/// Inserts a manual page boundary before the following text-bearing block.
+///
+/// This is intentionally distinct from [SectionBreakAction]: it preserves the
+/// current section's page setup, headers, footers and columns.  The reducer
+/// represents the boundary as `breakBefore: 'page'` on the new sibling block.
+class PageBreakAction extends EditorAction {
+  const PageBreakAction();
+}
+
 class SetBlockTypeAction extends EditorAction {
   final String blockType;
   const SetBlockTypeAction(this.blockType);
+}
+
+/// Applies a Word-style heading level to the selected text block.
+///
+/// Valid levels are 1 through 6. The reducer accepts paragraphs, list items
+/// and existing headings only; list-only metadata is removed when a list item
+/// becomes a heading, while all other block formatting is preserved.
+class SetHeadingLevelAction extends EditorAction {
+  final int level;
+  const SetHeadingLevelAction(this.level);
 }
 
 class ToggleListAction extends EditorAction {
@@ -414,6 +521,82 @@ class SetImageAltAction extends EditorAction {
   final String blockId;
   final String? alt;
   const SetImageAltAction(this.blockId, this.alt);
+}
+
+/// Inserts an editable, block-level text box after the focused block.
+///
+/// The optional presentation values are normalized into JSON primitives by
+/// the reducer. Its text is stored as normal inline content, rather than a
+/// second string attribute, so the box participates in ordinary text editing.
+class InsertTextBoxAction extends EditorAction {
+  final String text;
+  final double? width;
+  final double? height;
+  final DrawingAlignment? alignment;
+  final String? fill;
+  final String? outline;
+  final double? outlineWidth;
+
+  const InsertTextBoxAction({
+    this.text = '',
+    this.width,
+    this.height,
+    this.alignment,
+    this.fill,
+    this.outline,
+    this.outlineWidth,
+  });
+}
+
+/// Inserts a rectangle, ellipse, or line. Rectangle and ellipse labels are
+/// ordinary inline text; a line deliberately ignores a supplied [text].
+class InsertShapeAction extends EditorAction {
+  final DrawingShapeKind shapeKind;
+  final String text;
+  final double? width;
+  final double? height;
+  final DrawingAlignment? alignment;
+  final String? fill;
+  final String? outline;
+  final double? outlineWidth;
+
+  const InsertShapeAction(
+    this.shapeKind, {
+    this.text = '',
+    this.width,
+    this.height,
+    this.alignment,
+    this.fill,
+    this.outline,
+    this.outlineWidth,
+  });
+}
+
+/// Updates JSON-safe geometry and visual properties of a drawing block.
+///
+/// Null fields retain the existing value. For a text box, rectangle or
+/// ellipse, [text] replaces its ordinary inline content in one undoable
+/// operation. Lines do not accept text and reject an update that supplies it.
+class UpdateDrawingAction extends EditorAction {
+  final String blockId;
+  final String? text;
+  final double? width;
+  final double? height;
+  final DrawingAlignment? alignment;
+  final String? fill;
+  final String? outline;
+  final double? outlineWidth;
+
+  const UpdateDrawingAction(
+    this.blockId, {
+    this.text,
+    this.width,
+    this.height,
+    this.alignment,
+    this.fill,
+    this.outline,
+    this.outlineWidth,
+  });
 }
 
 class DeleteRangeAction extends EditorAction {

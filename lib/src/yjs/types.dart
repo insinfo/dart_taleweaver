@@ -533,6 +533,10 @@ class YArray extends YType {
   }
 
   void delete(int index, [int count = 1]) {
+    if (doc != null && !doc!.inTransaction) {
+      doc!.transact(() => delete(index, count));
+      return;
+    }
     if (index < 0 || index > length) throw RangeError.index(index, this);
     if (count < 0 || index + count > length)
       throw RangeError('Invalid delete range');
@@ -626,6 +630,16 @@ class YText extends YType {
   final Map<YId, ({YId? origin, YId? rightOrigin})> _causal = {};
   final Set<YId> _tombstones = {};
   final Map<YId, int> _deletedAnchorPositions = {};
+  final Map<String, List<int>> _remoteFormatStarts = {};
+  final Map<String, List<({YId? origin, YId? rightOrigin})>>
+      _pendingRemoteFormatEnds = {};
+  final List<
+      ({
+        String key,
+        dynamic value,
+        YId? origin,
+        YId? rightOrigin,
+      })> _pendingRemoteFormatsBeforeText = [];
 
   int get length => _text.length;
   String get text => _text;
@@ -724,8 +738,55 @@ class YText extends YType {
     } else if (rightOrigin != null) {
       index = _positionAtAnchor(rightOrigin);
     }
+    if (length == 0 || index >= length) {
+      _pendingRemoteFormatsBeforeText.add(
+          (key: key, value: value, origin: origin, rightOrigin: rightOrigin));
+      return;
+    }
+    if (value == null) {
+      final starts = _remoteFormatStarts[key];
+      if (starts != null && starts.isNotEmpty) {
+        // A normal closing marker changes the format from its boundary to the
+        // end of the visible sequence.  Keep the start only for pairing a
+        // close that arrived before its opening marker.
+        starts.removeLast();
+        if (starts.isEmpty) _remoteFormatStarts.remove(key);
+        if (index < length) {
+          format(index, length - index, {key: null}, recordCausal: false);
+        }
+      } else {
+        // The opening marker may arrive later.  Remember the causal end so
+        // that the eventual opening is limited to the intended interval.
+        _pendingRemoteFormatEnds
+            .putIfAbsent(key, () => [])
+            .add((origin: origin, rightOrigin: rightOrigin));
+      }
+      return;
+    }
+    final pendingEnds = _pendingRemoteFormatEnds[key];
+    if (pendingEnds != null && pendingEnds.isNotEmpty) {
+      final boundary = pendingEnds.removeAt(0);
+      if (pendingEnds.isEmpty) _pendingRemoteFormatEnds.remove(key);
+      final end = _remoteFormatBoundaryIndex(
+          origin: boundary.origin, rightOrigin: boundary.rightOrigin);
+      final boundedEnd = end < length ? end : length;
+      if (boundedEnd > index) {
+        format(index, boundedEnd - index, {key: value}, recordCausal: false);
+      }
+      return;
+    }
     if (index >= length) return;
     format(index, length - index, {key: value}, recordCausal: false);
+    _remoteFormatStarts.putIfAbsent(key, () => []).add(index);
+  }
+
+  int _remoteFormatBoundaryIndex({YId? origin, YId? rightOrigin}) {
+    if (origin != null) {
+      final after = _positionAfterAnchor(origin);
+      if (after < length || rightOrigin == null) return after;
+    }
+    if (rightOrigin != null) return _positionAtAnchor(rightOrigin);
+    return length;
   }
 
   int _positionAfterAnchor(YId anchor) {
@@ -945,6 +1006,20 @@ class YText extends YType {
       _segments[id] = (start: index, length: value.length);
       _causal[id] = (origin: origin, rightOrigin: rightOrigin);
       _tombstones.remove(id);
+    }
+    if (_pendingRemoteFormatsBeforeText.isNotEmpty) {
+      final pending = List<
+          ({
+            String key,
+            dynamic value,
+            YId? origin,
+            YId? rightOrigin,
+          })>.of(_pendingRemoteFormatsBeforeText);
+      _pendingRemoteFormatsBeforeText.clear();
+      for (final marker in pending) {
+        applyRemoteFormat(marker.key, marker.value,
+            origin: marker.origin, rightOrigin: marker.rightOrigin);
+      }
     }
     _changed();
   }

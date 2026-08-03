@@ -132,6 +132,71 @@ void main() {
     expect((box.children[1] as BlockBox).y, 30);
   });
 
+  test('moves colliding floats into a new band', () {
+    final rendered = ElementBox(
+      key: 'header',
+      style: const Style(),
+      children: [
+        const ElementBox(
+          key: 'header/float-a',
+          style: Style(float: Float.inlineStart),
+          metadata: LayoutBoxMetadata(
+              image: ImageMetadata(src: 'a.png', width: 80, height: 20)),
+          children: [],
+        ),
+        const ElementBox(
+          key: 'header/float-b',
+          style: Style(float: Float.inlineEnd),
+          metadata: LayoutBoxMetadata(
+              image: ImageMetadata(src: 'b.png', width: 60, height: 15)),
+          children: [],
+        ),
+      ],
+    );
+    final box = layoutTemplateRenderNode(
+        root: rendered,
+        shaper: createMockShaper(8, 16),
+        inlineSize: 120,
+        fallbackStyle: initialComputedStyle);
+    expect((box.children[1] as ImageBox).y, 20);
+  });
+
+  test('releases float narrowing after its bottom edge', () {
+    final rendered = ElementBox(
+      key: 'header',
+      style: const Style(),
+      children: [
+        const ElementBox(
+          key: 'header/float',
+          style: Style(float: Float.inlineStart),
+          metadata: LayoutBoxMetadata(
+              image: ImageMetadata(src: 'float.png', width: 40, height: 16)),
+          children: [],
+        ),
+        ElementBox(
+          key: 'header/long',
+          style: const Style(),
+          children: [
+            createTextBox('header/long/0', const Style(),
+                'one two three four five six seven eight'),
+          ],
+        ),
+        ElementBox(
+          key: 'header/after',
+          style: const Style(),
+          children: [createTextBox('header/after/0', const Style(), 'after')],
+        ),
+      ],
+    );
+    final box = layoutTemplateRenderNode(
+        root: rendered,
+        shaper: createMockShaper(8, 16),
+        inlineSize: 120,
+        fallbackStyle: initialComputedStyle);
+    expect((box.children[1] as BlockBox).inlineSize, 80);
+    expect((box.children[2] as BlockBox).inlineSize, 120);
+  });
+
   test('preserves nested element boundaries as hard line breaks', () {
     final rendered = ElementBox(
       key: 'header',

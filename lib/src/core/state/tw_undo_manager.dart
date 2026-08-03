@@ -30,8 +30,9 @@ class SelectionEntry {
 /// A single undo/redo stack entry.
 ///
 /// Stores complete snapshots of the document state (blocks, embedContents,
-/// templateContents, listDefs, comments, suggestions) before and after the
-/// mutation, plus a [SelectionEntry] and the transaction origin.
+/// templateContents, listDefs, comments, suggestions and document metadata)
+/// before and after the mutation, plus a [SelectionEntry] and the transaction
+/// origin.
 class StackItem {
   /// Snapshot of blocks BEFORE the mutation.
   final Map<String, Map<String, dynamic>> blocksBefore;
@@ -69,6 +70,12 @@ class StackItem {
   /// Snapshot of suggestions AFTER the mutation.
   Map<String, Map<String, dynamic>> suggestionsAfter;
 
+  /// Document metadata BEFORE the mutation.
+  final Map<String, dynamic> documentMetaBefore;
+
+  /// Document metadata AFTER the mutation.
+  Map<String, dynamic> documentMetaAfter;
+
   /// Metadata map (analogous to Yjs StackItem.meta).
   final Map<Symbol, dynamic> meta = {};
 
@@ -90,6 +97,8 @@ class StackItem {
     required this.commentsAfter,
     required this.suggestionsBefore,
     required this.suggestionsAfter,
+    required this.documentMetaBefore,
+    required this.documentMetaAfter,
     this.origin,
     this.coalesceKey,
     this.timestampMs,
@@ -127,6 +136,7 @@ class TwUndoManager {
   Map<String, Map<String, dynamic>>? _capturedListDefs;
   Map<String, Map<String, dynamic>>? _capturedComments;
   Map<String, Map<String, dynamic>>? _capturedSuggestions;
+  Map<String, dynamic>? _capturedDocumentMeta;
 
   /// Transaction origins to exclude from undo tracking.
   final Set<String> _excludedOrigins;
@@ -160,6 +170,7 @@ class TwUndoManager {
     _capturedListDefs = _doc.snapshotListDefs();
     _capturedComments = _doc.snapshotComments();
     _capturedSuggestions = _doc.snapshotSuggestions();
+    _capturedDocumentMeta = _doc.snapshotMeta();
   }
 
   /// End capturing and push the undo item.
@@ -173,6 +184,7 @@ class TwUndoManager {
     String? origin,
   }) {
     if (!_capturing) return;
+    // ignore: avoid_print
     _capturing = false;
 
     // Check if origin is excluded.
@@ -194,6 +206,8 @@ class TwUndoManager {
       commentsAfter: _doc.snapshotComments(),
       suggestionsBefore: _capturedSuggestions!,
       suggestionsAfter: _doc.snapshotSuggestions(),
+      documentMetaBefore: _capturedDocumentMeta!,
+      documentMetaAfter: _doc.snapshotMeta(),
       origin: origin,
       coalesceKey: _captureCoalesceKey,
       timestampMs: _captureTimestampMs,
@@ -204,7 +218,8 @@ class TwUndoManager {
         _same(item.templateContentsBefore, item.templateContentsAfter) &&
         _same(item.listDefsBefore, item.listDefsAfter) &&
         _same(item.commentsBefore, item.commentsAfter) &&
-        _same(item.suggestionsBefore, item.suggestionsAfter)) {
+        _same(item.suggestionsBefore, item.suggestionsAfter) &&
+        _same(item.documentMetaBefore, item.documentMetaAfter)) {
       _clearCapture();
       return;
     }
@@ -231,7 +246,8 @@ class TwUndoManager {
         ..templateContentsAfter = item.templateContentsAfter
         ..listDefsAfter = item.listDefsAfter
         ..commentsAfter = item.commentsAfter
-        ..suggestionsAfter = item.suggestionsAfter;
+        ..suggestionsAfter = item.suggestionsAfter
+        ..documentMetaAfter = item.documentMetaAfter;
       final before = (previous.meta[_selKey] as SelectionEntry?)?.before;
       final after = (item.meta[_selKey] as SelectionEntry?)?.after;
       previous.meta[_selKey] = SelectionEntry(before: before, after: after);
@@ -261,16 +277,13 @@ class TwUndoManager {
       _doc.restoreListDefs(item.listDefsBefore);
       _doc.restoreComments(item.commentsBefore);
       _doc.restoreSuggestions(item.suggestionsBefore);
+      _doc.restoreMeta(item.documentMetaBefore);
     });
 
     // Push to redo stack.
     _redoStack.add(item);
 
-    // Compute dirty IDs (union of all changed block keys).
-    final dirtyIds = <BlockId>{};
-    for (final k in {...item.blocksBefore.keys, ...item.blocksAfter.keys}) {
-      dirtyIds.add(BlockId(k));
-    }
+    final dirtyIds = _dirtyIdsFor(item);
 
     final selEntry = item.meta[_selKey] as SelectionEntry?;
 
@@ -293,16 +306,13 @@ class TwUndoManager {
       _doc.restoreListDefs(item.listDefsAfter);
       _doc.restoreComments(item.commentsAfter);
       _doc.restoreSuggestions(item.suggestionsAfter);
+      _doc.restoreMeta(item.documentMetaAfter);
     });
 
     // Push back to undo stack.
     _undoStack.add(item);
 
-    // Compute dirty IDs.
-    final dirtyIds = <BlockId>{};
-    for (final k in {...item.blocksBefore.keys, ...item.blocksAfter.keys}) {
-      dirtyIds.add(BlockId(k));
-    }
+    final dirtyIds = _dirtyIdsFor(item);
 
     final selEntry = item.meta[_selKey] as SelectionEntry?;
 
@@ -329,9 +339,31 @@ class TwUndoManager {
     _capturedListDefs = null;
     _capturedComments = null;
     _capturedSuggestions = null;
+    _capturedDocumentMeta = null;
     _captureCoalesceKey = null;
     _captureTimestampMs = null;
     _captureBreak = false;
+  }
+
+  Set<BlockId> _dirtyIdsFor(StackItem item) {
+    final dirtyIds = <BlockId>{};
+    for (final ids in <Set<String>>[
+      {...item.blocksBefore.keys, ...item.blocksAfter.keys},
+      {...item.embedContentsBefore.keys, ...item.embedContentsAfter.keys},
+      {...item.templateContentsBefore.keys, ...item.templateContentsAfter.keys},
+    ]) {
+      dirtyIds.addAll(ids.map(BlockId.new));
+    }
+    final sideTablesChanged = !_same(item.listDefsBefore, item.listDefsAfter) ||
+        !_same(item.commentsBefore, item.commentsAfter) ||
+        !_same(item.suggestionsBefore, item.suggestionsAfter) ||
+        !_same(item.documentMetaBefore, item.documentMetaAfter);
+    if (sideTablesChanged) {
+      final root = _doc.meta['rootId'];
+      dirtyIds.add(
+          BlockId(root is String && root.isNotEmpty ? root : '__document__'));
+    }
+    return dirtyIds;
   }
 
   bool _same(Object a, Object b) =>

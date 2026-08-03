@@ -1,9 +1,12 @@
 library;
 
+import 'dart:js_interop';
+
 import 'package:web/web.dart' as web;
 
 import '../cascade/attr_registry.dart';
 import '../components/component_registry.dart';
+import '../state/block_id.dart';
 import '../state/state.dart';
 import '../state/suggestions.dart';
 import 'render_to_dom.dart';
@@ -15,9 +18,17 @@ class DigitalDomReconciler {
   final web.Document document;
   final ComponentRegistry components;
   final AttrRegistry attrs;
+
+  /// When supplied, this reconciler renders one header/footer template body
+  /// instead of the main document tree.
+  final BlockId? templateBodyId;
+  int templatePageNumber;
+  int templatePageCount;
   SuggestionView suggestionView;
   web.Element? _root;
   State? _state;
+  web.ResizeObserver? _tabLayoutResizeObserver;
+  int? _tabLayoutFrame;
 
   DigitalDomReconciler({
     required this.host,
@@ -25,18 +36,42 @@ class DigitalDomReconciler {
     required this.components,
     required this.attrs,
     this.suggestionView = SuggestionView.suggesting,
+    this.templateBodyId,
+    this.templatePageNumber = 1,
+    this.templatePageCount = 1,
   });
 
   web.Element? get root => _root;
   State? get state => _state;
 
+  /// Re-renders a template projection with concrete PAGE/NUMPAGES values.
+  ///
+  /// Template hosts share the controller with the document host, so changing
+  /// these display-only values must not dispatch a document transaction or
+  /// alter undo history.
+  void setTemplatePageValues(int pageNumber, int pageCount) {
+    final normalizedPage = pageNumber < 1 ? 1 : pageNumber;
+    final normalizedCount = pageCount < 1 ? 1 : pageCount;
+    if (templateBodyId == null ||
+        (templatePageNumber == normalizedPage &&
+            templatePageCount == normalizedCount)) {
+      return;
+    }
+    templatePageNumber = normalizedPage;
+    templatePageCount = normalizedCount;
+    final current = _state;
+    if (current != null) reconcile(current);
+  }
+
   void mount(State state) {
     destroy();
-    final next = renderDocumentToDom(state, components, attrs, document,
-        suggestionView: suggestionView);
+    final next = _render(state);
     host.appendChild(next);
     _root = next;
     _state = state;
+    _layoutTabsNow();
+    _installTabLayoutResizeObserver();
+    _scheduleTabLayout();
   }
 
   void reconcile(State state) {
@@ -44,23 +79,74 @@ class DigitalDomReconciler {
       mount(state);
       return;
     }
-    final next = renderDocumentToDom(state, components, attrs, document,
-        suggestionView: suggestionView);
+    final next = _render(state);
     final current = _root!;
     if (!_reconcileElement(current, next)) {
       host.replaceChild(next, current);
       _root = next;
     }
     _state = state;
+    _layoutTabsNow();
+    _scheduleTabLayout();
   }
 
   void destroy() {
+    final frame = _tabLayoutFrame;
+    if (frame != null) web.window.cancelAnimationFrame(frame);
+    _tabLayoutFrame = null;
+    _tabLayoutResizeObserver?.disconnect();
+    _tabLayoutResizeObserver = null;
     final current = _root;
     if (current != null && current.parentNode != null) {
       current.parentNode!.removeChild(current);
     }
     _root = null;
     _state = null;
+  }
+
+  /// Tab stops need a mounted line box to resolve their advance.  Running once
+  /// immediately covers ordinary edits; a second frame accounts for a newly
+  /// attached host, font metrics and browser reflow.  Only style/data
+  /// attributes on existing inline tab atoms are touched.
+  void _layoutTabsNow() {
+    final root = _root;
+    if (root == null) return;
+    layoutTabStopsInDom(root, window: document.defaultView);
+  }
+
+  void _scheduleTabLayout() {
+    if (_tabLayoutFrame != null) return;
+    _tabLayoutFrame = web.window.requestAnimationFrame(((double _) {
+      _tabLayoutFrame = null;
+      _layoutTabsNow();
+    }).toJS);
+  }
+
+  void _installTabLayoutResizeObserver() {
+    if (_tabLayoutResizeObserver != null) return;
+    _tabLayoutResizeObserver = web.ResizeObserver(
+      ((JSArray<web.ResizeObserverEntry> entries, web.ResizeObserver _) {
+        if (entries.length > 0) _scheduleTabLayout();
+      }).toJS,
+    )..observe(host);
+  }
+
+  web.Element _render(State state) {
+    final template = templateBodyId;
+    if (template != null) {
+      return renderTemplateBodyToDom(
+        state,
+        template,
+        components,
+        attrs,
+        document,
+        suggestionView: suggestionView,
+        pageNumber: templatePageNumber,
+        pageCount: templatePageCount,
+      );
+    }
+    return renderDocumentToDom(state, components, attrs, document,
+        suggestionView: suggestionView);
   }
 }
 
@@ -97,13 +183,14 @@ bool _reconcileElement(web.Element current, web.Element fresh) {
   final currentNodes = _childNodes(current);
   final keyed = <String, web.Element>{};
   for (final node in currentNodes) {
-    if (node is! web.Element) continue;
-    final key = node.getAttribute('data-block-id');
-    if (key != null && key.isNotEmpty) keyed[key] = node;
+    if (!_isDomElement(node)) continue;
+    final element = node as web.Element;
+    final key = element.getAttribute('data-block-id');
+    if (key != null && key.isNotEmpty) keyed[key] = element;
   }
   final hasKeys = freshNodes.any((node) =>
-      node is web.Element &&
-      (node.getAttribute('data-block-id') ?? '').isNotEmpty);
+      _isDomElement(node) &&
+      ((node as web.Element).getAttribute('data-block-id') ?? '').isNotEmpty);
   if (!hasKeys) {
     _reconcileUnkeyedChildren(current, fresh);
     return true;
@@ -112,17 +199,19 @@ bool _reconcileElement(web.Element current, web.Element fresh) {
   final desired = <web.Node>[];
   for (var i = 0; i < freshNodes.length; i++) {
     final next = freshNodes[i];
-    if (next is web.Element) {
-      final key = next.getAttribute('data-block-id');
+    if (_isDomElement(next)) {
+      final nextElement = next as web.Element;
+      final key = nextElement.getAttribute('data-block-id');
       final keyedOld = key == null ? null : keyed[key];
-      if (keyedOld != null && _reconcileElement(keyedOld, next)) {
+      if (keyedOld != null && _reconcileElement(keyedOld, nextElement)) {
         desired.add(keyedOld);
         continue;
       }
       final positional = i < currentNodes.length ? currentNodes[i] : null;
       if (key == null &&
-          positional is web.Element &&
-          _reconcileElement(positional, next)) {
+          positional != null &&
+          _isDomElement(positional) &&
+          _reconcileElement(positional as web.Element, nextElement)) {
         desired.add(positional);
         continue;
       }
@@ -177,8 +266,10 @@ void _reconcileUnkeyedChildren(web.Element current, web.Element fresh) {
       if (oldNode.nodeValue != newNode.nodeValue) {
         oldNode.nodeValue = newNode.nodeValue;
       }
-    } else if (oldNode is web.Element && newNode is web.Element) {
-      if (!_reconcileElement(oldNode, newNode)) {
+    } else if (_isDomElement(oldNode) && _isDomElement(newNode)) {
+      final oldElement = oldNode as web.Element;
+      final newElement = newNode as web.Element;
+      if (!_reconcileElement(oldElement, newElement)) {
         current.replaceChild(newNode, oldNode);
       }
     } else if (oldNode.nodeType != newNode.nodeType) {
@@ -192,6 +283,10 @@ void _reconcileUnkeyedChildren(web.Element current, web.Element fresh) {
     current.appendChild(freshNodes[i]);
   }
 }
+
+/// `package:web` DOM interfaces are erased at runtime. Never use `is
+/// web.Element` to distinguish a Text node; use the browser node type first.
+bool _isDomElement(web.Node node) => node.nodeType == web.Node.ELEMENT_NODE;
 
 /// Applies a keyed child order to a real DOM parent.
 ///

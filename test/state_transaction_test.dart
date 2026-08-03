@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 import 'package:taleweaver/src/core/state/block_id.dart';
 import 'package:taleweaver/src/core/state/block_schema.dart';
 import 'package:taleweaver/src/core/state/inline_content.dart';
+import 'package:taleweaver/src/core/state/history.dart';
 import 'package:taleweaver/src/core/state/state.dart';
 import 'package:taleweaver/src/core/state/tw_doc.dart';
 
@@ -77,9 +78,77 @@ void main() {
 
   test('no-op transactions preserve the State identity', () {
     final state = createEmptyDocument(allocator: createTestAllocator());
+    final before = state.doc.revision;
     final result = applyOperation(state, (_) {});
 
     expect(result.dirtyIds, isEmpty);
     expect(result.state, same(state));
+    expect(state.doc.revision, before);
+  });
+
+  test('a dirty mark without a final document diff stays a no-op', () {
+    final state = createEmptyDocument(allocator: createTestAllocator());
+    final paragraph = getBlock(state, BlockId('blk-1'))!;
+    final before = state.doc.revision;
+
+    final result = applyOperation(state, (doc) {
+      doc.setBlockField(paragraph.id.value, BlockFields.attrs,
+          Map<String, dynamic>.of(paragraph.attrs));
+    });
+
+    expect(result.state, same(state));
+    expect(result.dirtyIds, isEmpty);
+    expect(state.doc.revision, before);
+  });
+
+  test('side-table changes advance the document revision and invalidate root',
+      () {
+    final state = createEmptyDocument(allocator: createTestAllocator());
+    final before = state.doc.revision;
+
+    final result = applyOperation(state, (doc) {
+      doc.comments['comment-1'] = <String, dynamic>{
+        'author': 'alice',
+        'body': 'Comentário sem alteração de bloco',
+      };
+    });
+
+    expect(result.state, isNot(same(state)));
+    expect(result.dirtyIds, contains(state.rootId));
+    expect(state.doc.revision, before + 1);
+  });
+
+  test('undo of a side-table-only change advances the document revision', () {
+    final state = createEmptyDocument(allocator: createTestAllocator());
+    final history = createHistory(state);
+    history.beginCapture();
+    applyOperation(state, (doc) {
+      doc.suggestions['suggestion-1'] = <String, dynamic>{'author': 'alice'};
+    });
+    history.commit();
+    final beforeUndo = state.doc.revision;
+
+    final undone = history.undo();
+
+    expect(undone, isNotNull);
+    expect(state.doc.suggestions, isEmpty);
+    expect(state.doc.revision, beforeUndo + 1);
+  });
+
+  test('undo and redo preserve document metadata', () {
+    final state = createEmptyDocument(allocator: createTestAllocator());
+    final history = createHistory(state);
+    history.beginCapture();
+    applyOperation(state, (doc) {
+      doc.meta['lastChildId'] = 'blk-1';
+    });
+    history.commit();
+    expect(state.doc.meta['lastChildId'], 'blk-1');
+
+    history.undo();
+    expect(state.doc.meta.containsKey('lastChildId'), isFalse);
+
+    history.redo();
+    expect(state.doc.meta['lastChildId'], 'blk-1');
   });
 }

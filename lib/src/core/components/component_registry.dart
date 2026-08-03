@@ -6,6 +6,7 @@ library;
 import '../state/block_kinds.dart';
 import 'component_definition.dart';
 import 'document.dart';
+import 'drawing.dart';
 import 'footnote_body.dart';
 import 'heading.dart';
 import 'horizontal_line.dart';
@@ -75,6 +76,8 @@ ComponentRegistry createDefaultComponentRegistry() {
   reg.register(headingComponent);
   reg.register(listItemComponent);
   reg.register(imageComponent);
+  reg.register(textBoxComponent);
+  reg.register(shapeComponent);
   reg.register(horizontalLineComponent);
   reg.register(tableOfContentsComponent);
   return reg;

@@ -36,7 +36,7 @@ int compareBlocksInDocOrder(State state, BlockId idA, BlockId idB) {
   int i = chainA.length - 1;
   int j = chainB.length - 1;
 
-  while (i >= 0 && j >= 0 && chainA[i] == chainB[j]) {
+  while (i >= 0 && j >= 0 && chainA[i].id == chainB[j].id) {
     i--;
     j--;
   }
@@ -48,8 +48,8 @@ int compareBlocksInDocOrder(State state, BlockId idA, BlockId idB) {
 
   var cursor = lca.firstChildId;
   while (cursor != null) {
-    if (cursor == chainA[i]) return -1;
-    if (cursor == chainB[j]) return 1;
+    if (cursor == chainA[i].id) return -1;
+    if (cursor == chainB[j].id) return 1;
     final block = resolveBlock(state, cursor)?.block;
     cursor = block?.nextSiblingId;
   }

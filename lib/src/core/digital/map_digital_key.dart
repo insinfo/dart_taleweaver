@@ -11,6 +11,10 @@ EditorAction? mapDigitalKey(
     bool inListItem = false}) {
   final command = mac ? meta : ctrl;
   if (key == 'Escape') return const EscapeAction();
+  // Ctrl/Cmd+Enter is a document command, not a browser text edit.  Handle it
+  // before the ordinary Enter fast-path below so the browser never inserts an
+  // extra DOM paragraph alongside the model's manual page boundary.
+  if (key == 'Enter' && command) return const PageBreakAction();
   if (key == 'Tab') {
     if (!inListItem) return shift ? null : const InsertTabAction();
     return shift ? const ListOutdentAction() : const ListIndentAction();

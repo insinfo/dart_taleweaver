@@ -161,6 +161,17 @@ class BackgroundColorInterpreter extends AttrInterpreter {
       (value is String) ? Style(backgroundColor: value) : const Style();
 }
 
+/// The editing action deliberately stores the Word/Ribbon highlight under a
+/// semantic `highlight` key.  Keep that key separate from the generic CSS
+/// oriented `backgroundColor` attribute, but paint both the same way.
+class HighlightInterpreter extends AttrInterpreter {
+  @override
+  String get attrKey => 'highlight';
+  @override
+  Style toStyle(dynamic value, [CascadeContext? ctx]) =>
+      (value is String) ? Style(backgroundColor: value) : const Style();
+}
+
 class TextAlignInterpreter extends AttrInterpreter {
   @override
   String get attrKey => 'textAlign';
@@ -219,6 +230,20 @@ List<TabStop>? normalizeTabStops(dynamic value) {
   if (value is! List) return null;
   final stops = <TabStop>[];
   for (final raw in value) {
+    // Editor actions operate on the typed public [TabStop] value while
+    // imported/collaborative documents carry its JSON-map form.  Accept both
+    // representations at this cascade boundary so a ruler update is visible
+    // immediately, before a document is serialized and read back.
+    if (raw is TabStop) {
+      final position =
+          raw.position.isFinite ? (raw.position > 0 ? raw.position : 0.0) : 0.0;
+      stops.add(TabStop(
+        position: position,
+        alignment: raw.alignment,
+        leader: raw.leader,
+      ));
+      continue;
+    }
     if (raw is! Map) continue;
     final pos = raw['position'];
     final position = (pos is num && !pos.isNaN && !pos.isInfinite)
@@ -277,6 +302,7 @@ void registerBuiltinAttrs(AttrRegistry registry) {
   registry.register(FontSizeInterpreter());
   registry.register(ColorInterpreter());
   registry.register(BackgroundColorInterpreter());
+  registry.register(HighlightInterpreter());
 
   registry.register(TextAlignInterpreter());
   registry.register(TextTransformInterpreter());

@@ -2,7 +2,11 @@ import 'package:test/test.dart';
 import 'package:taleweaver/src/core/digital/editor_controller.dart';
 import 'package:taleweaver/src/core/digital/map_before_input.dart';
 import 'package:taleweaver/src/core/editor/editor_action.dart';
+import 'package:taleweaver/src/core/editor/editor_state.dart';
+import 'package:taleweaver/src/core/state/block_schema.dart';
 import 'package:taleweaver/src/core/state/block_position.dart';
+import 'package:taleweaver/src/core/state/state.dart';
+import 'package:taleweaver/src/core/state/inline_content.dart';
 
 void main() {
   test('controller dispatches beforeinput and notifies listeners', () {
@@ -55,5 +59,43 @@ void main() {
     expect(controller.isComposing, isFalse);
     expect(controller.editor.selection.focus.offset, before + 1);
     expect(controller.compositionEnd('い'), isNull);
+  });
+
+  test('controller forwards EditorConfig into reducer dispatch', () {
+    final controller = DigitalEditorController(
+        config: const EditorConfig(suggestingAuthor: 'alice'));
+    controller.dispatch(const InsertTextAction('tracked'));
+    final block = getBlock(
+        controller.editor.state, controller.editor.selection.focus.blockId)!;
+    final item = block.inlineContent!.items.single as TextItem;
+    expect(item.attrs['insertionSuggestionId'], isA<String>());
+  });
+
+  test('controller applies its configuration to a freshly created state', () {
+    final controller = DigitalEditorController(
+      config: const EditorConfig(containerWidth: 640),
+    );
+
+    expect(controller.editor.containerWidth, 640);
+  });
+
+  test('controller reconciles a foreign document change without local undo',
+      () {
+    final controller = DigitalEditorController();
+    var notifications = 0;
+    controller.addListener((_) => notifications++);
+    final blockId = controller.editor.selection.focus.blockId;
+    final remote = applyOperation(controller.editor.state, (doc) {
+      doc.getBlockMap(blockId.value)![BlockFields.inlineContent] =
+          const InlineContent([TextItem(text: 'texto remoto')]);
+    }, origin: 'peer-a');
+
+    controller.reconcileForeignChange(remote.dirtyIds);
+
+    expect(notifications, 1);
+    final block = getBlock(controller.editor.state, blockId)!;
+    expect(
+        (block.inlineContent!.items.single as TextItem).text, 'texto remoto');
+    expect(controller.editor.history.canUndo, isFalse);
   });
 }

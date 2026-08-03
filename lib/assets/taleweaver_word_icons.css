@@ -1,0 +1,39 @@
+/*
+ * Taleweaver Office icon font.
+ *
+ * The font is generated only from vector SVGs in
+ * lib/assets/icons/taleweaver. See that directory's license and manifest,
+ * plus tool/generate_taleweaver_icon_font.ps1 for reproduction.
+ *
+ * No bitmap, base64 data URI, SVG fragment, or glyph mapping is embedded in
+ * this stylesheet. The Dart icon contract owns semantic name -> codepoint
+ * resolution, which lets applications replace the font cleanly.
+ */
+@font-face {
+  font-family: "Taleweaver Office Icons";
+  src:
+    url("fonts/TaleweaverOfficeIcons.woff2") format("woff2"),
+    url("fonts/TaleweaverOfficeIcons.woff") format("woff"),
+    url("fonts/TaleweaverOfficeIcons.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+  font-display: block;
+}
+
+.tw-editor .tw-editor__icon {
+  display: inline-grid;
+  width: 1em;
+  height: 1em;
+  place-items: center;
+  overflow: hidden;
+  font-family: var(--tw-icon-font, "Taleweaver Office Icons");
+  font-size: 1.12em;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  speak: never;
+}
+
+.tw-editor__command--large .tw-editor__icon {
+  font-size: 1.08em;
+}

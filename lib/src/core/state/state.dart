@@ -139,8 +139,9 @@ class OperationResult {
 /// and the set of block IDs that were dirtied by the mutation.
 OperationResult applyOperation(
   State state,
-  void Function(TwDoc doc) mutationFn,
-) {
+  void Function(TwDoc doc) mutationFn, {
+  String? origin,
+}) {
   final dirtyIds = <BlockId>{};
   late final AfterTransactionCallback listener;
   listener = (ids, _) {
@@ -150,7 +151,7 @@ OperationResult applyOperation(
   try {
     state.doc.transact(() {
       mutationFn(state.doc);
-    });
+    }, origin: origin);
   } finally {
     state.doc.offAfterTransaction(listener);
   }

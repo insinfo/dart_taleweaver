@@ -302,12 +302,14 @@ class YDoc {
       }
       return;
     }
-    final owner = item.parent is YId ||
-            item.parentSub != null ||
-            item.origin != null ||
-            item.rightOrigin != null
-        ? _parentTypeFor(item)
-        : null;
+    final owner =
+        (item.parent is String && (item.parent as String).isNotEmpty) ||
+                item.parent is YId ||
+                item.parentSub != null ||
+                item.origin != null ||
+                item.rightOrigin != null
+            ? _parentTypeFor(item)
+            : null;
     if (owner is YMap && item.parentSub != null) {
       if (item.content is List && item.content.length == 1) {
         owner.applyRemote(item.parentSub!, item.content.first, id: item.id);

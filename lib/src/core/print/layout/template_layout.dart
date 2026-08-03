@@ -44,9 +44,17 @@ BlockBox layoutTemplateRenderNode({
       if (image != null) {
         final style =
             child.computedStyle ?? root.computedStyle ?? fallbackStyle;
-        final offset = flowOffset;
+        var offset = flowOffset;
         final float = child.style.float ?? style.float;
         final isFloat = float != Float.none;
+        if (isFloat && leftFloat + rightFloat + image.width > inlineSize) {
+          // A new float cannot share the current line with the existing
+          // floats.  Start a fresh float band below their bottom edge.
+          offset = floatBottom > flowOffset ? floatBottom : flowOffset;
+          leftFloat = 0;
+          rightFloat = 0;
+          flowOffset = offset;
+        }
         final x =
             float == Float.inlineEnd ? inlineSize - image.width : leftFloat;
         children.add(ImageBox(
@@ -86,8 +94,12 @@ BlockBox layoutTemplateRenderNode({
       }
       final text = _textContent(child);
       if (text.isEmpty) continue;
+      if (flowOffset >= floatBottom && floatBottom > 0) {
+        leftFloat = 0;
+        rightFloat = 0;
+      }
       final style = child.computedStyle ?? root.computedStyle ?? fallbackStyle;
-      final clear = child.style.clear ?? Clear.none;
+      final clear = child.style.clear ?? style.clear;
       if (clear != Clear.none) {
         final clearBottom = switch (clear) {
           Clear.inlineStart => leftFloatBottom,

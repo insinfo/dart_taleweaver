@@ -19,6 +19,7 @@ export 'src/core/perf/perf_trace.dart';
 // ---------------------------------------------------------------------------
 export 'src/core/styles/color.dart';
 export 'src/core/styles/length.dart';
+export 'src/core/styles/tab_stops.dart';
 
 // ---------------------------------------------------------------------------
 // State — types and access primitives
@@ -31,16 +32,25 @@ export 'src/core/state/block_position.dart';
 export 'src/core/state/page_config.dart';
 export 'src/core/state/block_kinds.dart';
 export 'src/core/state/block_schema.dart';
+export 'src/core/state/drawing.dart';
 export 'src/core/state/tw_doc.dart';
 export 'src/core/state/tw_undo_manager.dart';
 export 'src/core/state/snapshot.dart';
 export 'src/core/state/state.dart';
+export 'src/core/state/collab.dart';
 export 'src/core/state/extract_text.dart';
 export 'src/core/state/block_traversal.dart';
 export 'src/core/state/document_order.dart';
+export 'src/core/state/find_matches.dart';
 export 'src/core/state/history.dart';
 export 'src/core/state/list_defs.dart';
+export 'src/core/state/table_context.dart';
 export 'src/core/state/build_document_from_tree.dart';
+export 'src/core/state/serialize/document_serializer.dart';
+export 'src/core/state/serialize/binary_serializer.dart';
+export 'src/core/state/serialize/json_serializer.dart';
+export 'src/core/state/serialize/quill_delta_codec.dart';
+export 'src/core/state/serialize/serializer_registry.dart';
 
 // Layer-3 document operations.
 export 'src/core/state/ops/apply_attrs.dart';
@@ -94,6 +104,7 @@ export 'src/core/layout/uax9/index.dart';
 // ---------------------------------------------------------------------------
 export 'src/core/editor/editor_action.dart';
 export 'src/core/editor/editor_state.dart';
+export 'src/core/editor/reconcile_foreign_change.dart';
 
 // ---------------------------------------------------------------------------
 // Print layout geometry
@@ -119,6 +130,11 @@ export 'src/core/digital/editor_controller.dart';
 export 'src/core/digital/dom_reconciler.dart';
 export 'src/core/digital/dom_browser_reconciler.dart';
 export 'src/core/digital/selection_bridge.dart';
+export 'src/core/digital/browser_selection_bridge.dart';
+export 'src/core/digital/digital_editor_host_config.dart';
+export 'src/core/digital/digital_editor_host.dart';
+export 'src/core/digital/word_editor.dart';
+export 'src/core/digital/word_editor_js.dart';
 export 'src/core/render/render.dart';
 export 'src/core/render/resolve_cross_reference.dart';
 export 'src/core/render/collect_cross_references.dart';

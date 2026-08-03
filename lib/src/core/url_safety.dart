@@ -58,3 +58,19 @@ bool isExportSafeLinkUrl(String url) {
   final scheme = _schemeOf(url);
   return scheme == null || _safeUrlSchemes.contains(scheme);
 }
+
+/// True iff [url] is safe to place in an `<img src>` in the live editor.
+///
+/// Images support ordinary relative/HTTPS sources and the raster `data:` URLs
+/// produced by a browser FileReader. SVG data URLs are deliberately excluded:
+/// they are document-like content rather than a passive raster image and have
+/// a much larger browser-specific scripting surface.
+bool isSafeImageUrl(String url) {
+  final scheme = _schemeOf(url);
+  if (scheme == null || scheme == 'http' || scheme == 'https') return true;
+  if (scheme != 'data') return false;
+  return RegExp(
+    r'^data:image/(?:png|jpeg|gif|webp|avif);base64,[A-Za-z0-9+/=\r\n]+$',
+    caseSensitive: false,
+  ).hasMatch(url.trim());
+}

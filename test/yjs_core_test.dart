@@ -79,6 +79,16 @@ void main() {
     expect(array.toArray(), [1, 2, 3]);
   });
 
+  test('YArray delete outside transact emits one transaction update', () {
+    final doc = YDoc(clientId: 59);
+    final array = doc.getArray('array')..push([1, 2, 3]);
+    var transactions = 0;
+    doc.onAfterTransaction((_) => transactions++);
+    array.delete(1);
+    expect(array.toArray(), [1, 3]);
+    expect(transactions, 1);
+  });
+
   test('YArray concurrent remote inserts converge by YId and causal origins',
       () {
     final array = YDoc().getArray('array');
@@ -276,6 +286,54 @@ void main() {
         'attributes': {'bold': true}
       },
       {'insert': 'c'},
+    ]);
+  });
+
+  test('remote YFormatContent pairs markers delivered out of order', () {
+    final doc = YDoc();
+    final text = doc.getText('text');
+    text.applyRemote('abc', id: const YId(54, 0));
+    // Deliver the closing marker first: it must remain pending rather than
+    // formatting the remainder of the text when the opening marker arrives.
+    doc.applyRemoteItem(YItem(
+      const YId(55, 0),
+      1,
+      const YFormatContent('bold', null),
+      parent: 'text',
+      origin: const YId(54, 1),
+    ));
+    doc.applyRemoteItem(YItem(
+      const YId(55, 1),
+      1,
+      const YFormatContent('bold', true),
+      parent: 'text',
+      origin: const YId(54, 0),
+    ));
+    expect(text.toDelta(), [
+      {'insert': 'a'},
+      {
+        'insert': 'b',
+        'attributes': {'bold': true}
+      },
+      {'insert': 'c'},
+    ]);
+  });
+
+  test('remote format marker waits for a text segment delivered later', () {
+    final doc = YDoc();
+    final text = doc.getText('text');
+    doc.applyRemoteItem(YItem(
+      const YId(57, 0),
+      1,
+      const YFormatContent('italic', true),
+      parent: 'text',
+    ));
+    text.applyRemote('abc', id: const YId(58, 0));
+    expect(text.toDelta(), [
+      {
+        'insert': 'abc',
+        'attributes': {'italic': true}
+      },
     ]);
   });
 

@@ -63,10 +63,14 @@ class ListItemComponent implements LeafComponentDefinition {
     final lineHeight = lineHeightFromAttrs(view.attrs['lineHeight']);
     final marginInlineStart =
         marginInlineStartFromAttrs(view.attrs['marginInlineStart']);
+    final marginInlineEnd =
+        marginInlineEndFromAttrs(view.attrs['marginInlineEnd']);
+    final textIndent = textIndentFromAttrs(view.attrs['textIndent']);
     final marginBlockStart =
         marginBlockStartFromAttrs(view.attrs['marginBlockStart']);
     final marginBlockEnd =
         marginBlockEndFromAttrs(view.attrs['marginBlockEnd']);
+    final breakBefore = breakBeforeFromAttrs(view.attrs['breakBefore']);
     final tabStops = tabStopsFromAttrs(view.attrs['tabStops']);
 
     final style = Style(
@@ -81,12 +85,17 @@ class ListItemComponent implements LeafComponentDefinition {
       marginInlineStart: marginInlineStart != null
           ? LengthOrAuto.length(Length.px(marginInlineStart))
           : null,
+      marginInlineEnd: marginInlineEnd != null
+          ? LengthOrAuto.length(Length.px(marginInlineEnd))
+          : null,
+      textIndent: textIndent != null ? Length.px(textIndent) : null,
       marginBlockStart: marginBlockStart != null
           ? LengthOrAuto.length(Length.px(marginBlockStart))
           : null,
       marginBlockEnd: marginBlockEnd != null
           ? LengthOrAuto.length(Length.px(marginBlockEnd))
           : null,
+      breakBefore: breakBefore,
     );
 
     return createElementBox(
