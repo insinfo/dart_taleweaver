@@ -48,6 +48,7 @@ export 'src/core/state/table_context.dart';
 export 'src/core/state/build_document_from_tree.dart';
 export 'src/core/state/serialize/document_serializer.dart';
 export 'src/core/state/serialize/binary_serializer.dart';
+export 'src/core/state/serialize/docx_serializer.dart';
 export 'src/core/state/serialize/json_serializer.dart';
 export 'src/core/state/serialize/quill_delta_codec.dart';
 export 'src/core/state/serialize/serializer_registry.dart';
